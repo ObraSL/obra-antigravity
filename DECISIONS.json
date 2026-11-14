@@ -1,0 +1,70 @@
+{
+  "version": "1.0.0",
+  "project": "Control de Obra v2",
+  "organization": "ObraSL",
+  "status": "FROZEN_APPROVED",
+  "decisions": {
+    "tech_stack": {
+      "framework": "Next.js 16.3.4 (App Router + Turbopack)",
+      "ui_library": "React 19.2.8",
+      "styling": "Tailwind CSS v4",
+      "language": "TypeScript 5.x",
+      "backend_auth_db": "Supabase SSR + PostgreSQL (pg_graphql, RLS)",
+      "status": "FROZEN_APPROVED"
+    },
+    "visual_identity": {
+      "name": "Tactical Architectural Slate & Signal Lime",
+      "colors": {
+        "surface_base": "#1E2520",
+        "primary_lime": "#D4E565",
+        "accent_emerald": "#34D399",
+        "text_primary": "#FFFFFF"
+      },
+      "contrast_standard": "WCAG 2.1 AAA (16.4:1 base, 11.6:1 primary action)",
+      "status": "FROZEN_APPROVED"
+    },
+    "signature_moments": [
+      {
+        "id": "STAMP_2SEC",
+        "name": "2-Second Tactical Clock-In Stamp",
+        "component": "components/ui/StampButton.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "TELEMETRY_EQ",
+        "name": "Vertical Equalizer Telemetry Progress Bars",
+        "component": "components/ui/BarrasProgreso.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "STEPPED_GANTT",
+        "name": "Stepped Gantt Milestone View with Laser 'Hoy'",
+        "component": "components/planificacion/Gantt.tsx",
+        "status": "FROZEN_APPROVED"
+      }
+    ],
+    "verification_gallery": {
+      "route": "/galeria",
+      "env_flag": "NEXT_PUBLIC_GALERIA=1",
+      "features": ["320/375/430/768/1280px viewports", "4 roles", "3 languages (ES/UK/EN)", "zero network in-memory"],
+      "status": "FROZEN_APPROVED"
+    },
+    "repositories": {
+      "antigravity": {
+        "url": "https://github.com/ObraSL/obra-antigravity",
+        "branch": "main",
+        "status": "FROZEN_APPROVED"
+      },
+      "claude": {
+        "url": "https://github.com/ObraSL/obra-claude",
+        "branch": "main",
+        "status": "FROZEN_APPROVED"
+      }
+    },
+    "infrastructure": {
+      "test_supabase_project_id": "mxprbqfvdxalzcynweph",
+      "test_supabase_url": "https://mxprbqfvdxalzcynweph.supabase.co",
+      "status": "FROZEN_APPROVED"
+    }
+  }
+}
