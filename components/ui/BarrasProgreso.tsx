@@ -39,6 +39,13 @@ export function BarrasProgreso({
 
   return (
     <div className={`relative flex flex-col ${className}`} aria-hidden>
+      {/* Líneas horizontales de telemetría de fondo estilo Dribbble */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-7 top-3 flex flex-col justify-between opacity-40">
+        <div className="w-full border-b border-white/20" />
+        <div className="w-full border-b border-white/15" />
+        <div className="w-full border-b border-white/20" />
+      </div>
+
       <div className="relative flex flex-1 items-center justify-between gap-[6px] px-1 pt-2 pb-5">
         {serie.map((v, i) => {
           const alturaBase = tieneDatos

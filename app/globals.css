@@ -84,3 +84,44 @@ textarea {
   background: var(--color-obra-yellow);
   color: var(--color-obra-yellow-ink);
 }
+
+/* ---------------------------------------------------------------
+   Transiciones cinemáticas fluidas entre pantallas y páginas
+------------------------------------------------------------------ */
+@keyframes screen-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main > * {
+  animation: screen-fade-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: 160ms cubic-bezier(0.4, 0, 1, 1) both screen-fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 200ms cubic-bezier(0, 0, 0.2, 1) both screen-fade-in;
+}
+
+@keyframes screen-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.995);
+  }
+}

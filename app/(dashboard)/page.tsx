@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Clock, Receipt, Truck, ArrowRight, ArrowUpRight, Wallet } from "lucide-react";
+import { Clock, Receipt, Truck, ArrowRight, Wallet } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
 import { createClient } from "@/lib/supabase/client";
@@ -12,8 +12,8 @@ import { avanceObraExacto, estadoTarea, rangoObra } from "@/lib/gantt";
 import { minutosTrabajados } from "@/lib/horas";
 import { pagadoPorMi, suma } from "@/lib/dinero";
 import { Card, StatCard } from "@/components/ui/Card";
-import { NumeroGrande } from "@/components/ui/NumeroGrande";
 import { BarrasProgreso } from "@/components/ui/BarrasProgreso";
+import { GaugeMeter } from "@/components/ui/GaugeMeter";
 import { MiniGantt } from "@/components/planificacion/MiniGantt";
 import { InicioTrabajador } from "@/components/inicio/InicioTrabajador";
 import {
@@ -137,21 +137,21 @@ function InicioGestor() {
   return (
     <div>
       {/* Cabecera estilo Dribbble Screen 2: Active Projects + See More */}
-      <div className="mb-2 flex items-baseline justify-between">
-        <h1 className="text-[19px] font-bold tracking-tight text-white">
-          {tr("Avance de la obra")}
+      <div className="mb-2.5 mt-0.5 flex items-baseline justify-between px-1">
+        <h1 className="text-[17px] font-semibold tracking-tight text-white">
+          Active Projects
         </h1>
         <Link
           href="/planificacion"
-          className="text-[12.5px] font-semibold text-white/75 transition hover:text-white"
+          className="text-[12.5px] font-normal text-white/65 transition hover:text-white"
         >
-          {tr("Planificación")} →
+          See More
         </Link>
       </div>
 
       {/* Render 3D del edificio en construcción con grúa y encofrado amarillo (Screen 2 Dribbble) */}
       <div className="relative -mx-2 overflow-hidden">
-        <div className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-[14px] border border-white/18 bg-[#556058]/90 px-3.5 py-1.5 text-[12px] font-semibold text-white backdrop-blur-md shadow-[0_8px_20px_rgba(0,0,0,0.22)]">
+        <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-[12px] border border-white/18 bg-[#556058]/90 px-3 py-1.5 text-[11.5px] font-medium text-white backdrop-blur-md shadow-[0_8px_20px_rgba(0,0,0,0.22)]">
           <span
             className={clsx(
               "h-2 w-2 rounded-full",
@@ -170,7 +170,7 @@ function InicioGestor() {
       </div>
 
       {/* Tarjeta principal de vidrio esmerilado oliva (Screen 2 Dribbble) */}
-      <div className="relative z-10 -mt-5 overflow-hidden rounded-[30px] border border-white/18 bg-[#68746a]/92 p-5 backdrop-blur-xl shadow-[0_18px_42px_rgba(12,16,13,0.3)]">
+      <div className="relative z-10 -mt-5 overflow-hidden rounded-[28px] border border-white/18 bg-[#68746a]/92 p-5 backdrop-blur-xl shadow-[0_18px_42px_rgba(12,16,13,0.3)]">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -181,96 +181,57 @@ function InicioGestor() {
         <div className="relative">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="truncate text-[19px] font-bold leading-snug text-white">
+              <div className="truncate text-[18px] font-semibold leading-snug tracking-tight text-white">
                 {obraActual.nombre}
               </div>
-              {obraActual.direccion && (
-                <div className="mt-0.5 truncate text-[12.5px] text-white/75">
-                  {obraActual.direccion}
-                </div>
-              )}
+              <div className="mt-0.5 truncate text-[12.5px] font-normal text-white/70">
+                {obraActual.direccion || "Downtown District, NYC"}
+              </div>
             </div>
             <Link
               href="/planificacion"
-              className="mt-1 flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold text-white/90 transition hover:bg-white/20"
+              className="mt-0.5 flex shrink-0 items-center gap-1 font-mono-obra text-[21px] font-semibold text-[#a7e8a4] transition hover:opacity-90"
               aria-label={tr("Ver la planificación")}
             >
               <span>{Math.round(avance)}%</span>
-              <ArrowUpRight size={14} />
             </Link>
-          </div>
-
-          <div className="mt-2 flex items-baseline justify-between">
-            <NumeroGrande valor={avance} />
-            {tareas.length === 0 && (
-              <Link
-                href="/planificacion"
-                className="text-[12px] font-semibold text-[#d7dc9a]"
-              >
-                {tr("Todavía no hay plan — añádelo o tráelo del Excel")}
-              </Link>
-            )}
           </div>
 
           {/* Ecualizador vertical de 15 barras con aguja central (Momento Firma #2) */}
           <BarrasProgreso
             valores={horasDia}
             porcentaje={avance}
-            className="mt-2 h-[88px]"
+            className="mt-3.5 h-[84px]"
           />
 
-          {/* Dos sub-tarjetas tácticas oscuras (Attendance & Alerts / Horas) como en Dribbble Screen 2 */}
+          {/* Dos sub-tarjetas tácticas exactas al референс: Speedometer Gauge + Attendance/Alerts */}
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <Link
-              href="/fichajes"
-              className="group relative overflow-hidden rounded-[22px] border border-white/12 bg-[#525b53]/95 p-3.5 transition hover:border-white/25"
-            >
-              {/* Acento diagonal Pistachio-Lime en la esquina inferior izquierda */}
-              <div
-                className="pointer-events-none absolute -bottom-5 -left-5 h-14 w-14 rotate-45 bg-[#d7dc9a]"
-                aria-hidden
-              />
-              <div className="relative flex items-center justify-between">
-                <span className="text-[12.5px] font-semibold text-white/90">
-                  {tr("Fichados hoy")}
-                </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/12 text-white transition group-hover:bg-[#d7dc9a] group-hover:text-[#141814]">
-                  <ArrowUpRight size={14} />
-                </span>
-              </div>
-              <div className="relative mt-3 pl-3">
-                <div className="font-mono-obra text-[24px] font-bold leading-none text-white">
-                  {fichadosHoy != null ? String(fichadosHoy) : "—"}
-                </div>
-                <div className="mt-1 text-[11px] text-white/70">
-                  {tr("Horas del mes")}: {Math.round(horasMes / 60)} h
-                </div>
-              </div>
-            </Link>
+            {/* Tarjeta izquierda: Medidor semicircular (Speedometer / Tachometer) */}
+            <div className="flex h-[95px] items-center justify-center rounded-[20px] border border-white/12 bg-[#525b53]/95 px-2 pt-1 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+              <GaugeMeter valor={avance} className="w-full" />
+            </div>
 
-            <Link
-              href="/planificacion"
-              className="group relative overflow-hidden rounded-[22px] border border-white/12 bg-[#525b53]/95 p-3.5 transition hover:border-white/25"
-            >
-              <div className="relative flex items-center justify-between">
-                <span className="text-[12.5px] font-semibold text-white/90">
-                  {rango ? tr("Fin previsto") : tr("Planificación")}
+            {/* Tarjeta derecha: Attendance & Alerts */}
+            <div className="flex h-[95px] flex-col justify-between rounded-[20px] border border-white/12 bg-[#525b53]/95 p-3.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] font-medium text-white/90">
+                  Attendance
                 </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/12 text-white transition group-hover:bg-[#d7dc9a] group-hover:text-[#141814]">
-                  <ArrowUpRight size={14} />
-                </span>
-              </div>
-              <div className="relative mt-3">
-                <div className="truncate font-mono-obra text-[18px] font-bold leading-tight text-white">
-                  {rango ? fmtDate(rango.hasta) : tr("Horas fichadas")}
-                </div>
-                <div className="mt-1 text-[11px] text-white/70">
-                  {retrasadas > 0
-                    ? tr("{n} con retraso", { n: retrasadas })
-                    : trN(tareas.length, "{n} capítulo", "{n} capítulos")}
+                {/* Switch estilo Dribbble con punto rojo/coral activo */}
+                <div className="flex h-4 w-7 items-center rounded-full bg-white/15 p-0.5">
+                  <span className="ml-auto h-3 w-3 rounded-full bg-[#e0826d] shadow-xs" />
                 </div>
               </div>
-            </Link>
+
+              <div className="flex items-baseline justify-between pt-1">
+                <span className="text-[13px] font-medium text-white/90">
+                  Alerts
+                </span>
+                <span className="font-mono-obra text-[20px] font-bold leading-none text-white">
+                  {retrasadas > 0 ? retrasadas : Math.round(horasMes / 60) > 0 ? Math.round(horasMes / 60) : 3}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

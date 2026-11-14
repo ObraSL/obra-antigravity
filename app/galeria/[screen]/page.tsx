@@ -8,6 +8,7 @@ import { LandingMock } from "@/components/landing/LandingMock";
 import { Gantt } from "@/components/planificacion/Gantt";
 import { StampButton } from "@/components/ui/StampButton";
 import { BarrasProgreso } from "@/components/ui/BarrasProgreso";
+import { GaugeMeter } from "@/components/ui/GaugeMeter";
 import { Card } from "@/components/ui/Card";
 import { PrimaryButton, GhostButton } from "@/components/ui/Button";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
@@ -274,15 +275,25 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/avatar-alex.png" alt="Alex" className="h-9 w-9 rounded-xl border border-white/20 object-cover" />
           <div>
-            <div className="font-bold text-sm text-white leading-tight">Morning Alex</div>
-            <div className="text-[11px] text-white/75 truncate max-w-[180px]">{OBRA_FIXTURE.nombre}</div>
+            <div className="font-semibold text-sm text-white leading-tight">Morning Alex</div>
+            <div className="text-[11px] text-white/70 truncate max-w-[180px]">{OBRA_FIXTURE.nombre}</div>
           </div>
         </div>
-        <span className="font-mono text-xs bg-[#68746a]/85 border border-white/18 px-2.5 py-1.5 rounded-xl">🔔</span>
+        <span className="font-mono text-xs bg-[#68746a]/85 border border-white/18 px-2.5 py-1.5 rounded-xl text-white">🔔</span>
+      </div>
+
+      {/* Row: Active Projects + See More */}
+      <div className="flex items-baseline justify-between px-0.5 pt-1">
+        <span className="text-[16px] font-semibold tracking-tight text-white">
+          Active Projects
+        </span>
+        <span className="text-[12px] font-normal text-white/60">
+          See More
+        </span>
       </div>
 
       <div className="relative -mx-2 overflow-hidden">
-        <div className="absolute right-2 top-2 z-10 rounded-xl border border-white/18 bg-[#556058]/90 px-2.5 py-1 text-[11px] font-semibold text-white">
+        <div className="absolute right-2 top-2 z-10 rounded-xl border border-white/18 bg-[#556058]/90 px-2.5 py-1 text-[11px] font-medium text-white">
           ● On Track
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -292,35 +303,62 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
       <div className="relative z-10 -mt-5 rounded-[26px] border border-white/18 bg-[#68746a]/92 p-4 backdrop-blur-xl shadow-lg">
         <div className="flex justify-between items-start">
           <div>
-            <div className="font-bold text-base text-white">{OBRA_FIXTURE.nombre}</div>
-            <div className="text-xs text-white/75">{estado === "empty" ? tr("Todavía no hay tareas") : "85.706,00 €"}</div>
+            <div className="font-semibold text-base tracking-tight text-white">{OBRA_FIXTURE.nombre}</div>
+            <div className="text-xs text-white/70">{estado === "empty" ? tr("Todavía no hay tareas") : "Downtown District, NYC"}</div>
           </div>
-          <span className="font-mono-obra font-bold text-lg text-[#d7dc9a]">
+          <span className="font-mono-obra font-semibold text-xl text-[#a7e8a4]">
             {estado === "empty" ? "0%" : "64%"}
           </span>
         </div>
         <BarrasProgreso
           valores={estado === "empty" ? [0, 0] : [6, 9, 8, 7, 10, 9, 8, 10, 6, 3, 3, 3, 8, 9, 7]}
           porcentaje={estado === "empty" ? 0 : 64}
-          className="mt-2 h-[78px]"
+          className="mt-3 h-[78px]"
         />
+
+        {/* Dos sub-tarjetas exactas al референс: Speedometer Gauge + Attendance / Alerts */}
+        <div className="mt-3.5 grid grid-cols-2 gap-2.5">
+          <div className="flex h-[88px] items-center justify-center rounded-[18px] border border-white/12 bg-[#525b53]/95 px-1 pt-1 shadow-inner">
+            <GaugeMeter valor={estado === "empty" ? 0 : 64} className="w-full" />
+          </div>
+
+          <div className="flex h-[88px] flex-col justify-between rounded-[18px] border border-white/12 bg-[#525b53]/95 p-3 shadow-inner">
+            <div className="flex items-center justify-between">
+              <span className="text-[12.5px] font-medium text-white/90">
+                Attendance
+              </span>
+              <div className="flex h-3.5 w-6 items-center rounded-full bg-white/15 p-0.5">
+                <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#e0826d]" />
+              </div>
+            </div>
+
+            <div className="flex items-baseline justify-between pt-1">
+              <span className="text-[12.5px] font-medium text-white/90">
+                Alerts
+              </span>
+              <span className="font-mono-obra text-[18px] font-bold leading-none text-white">
+                3
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <Card className="p-4">
-        <div className="text-xs font-bold uppercase text-obra-text-dim tracking-wider mb-2">
+        <div className="text-xs font-semibold uppercase text-obra-text-dim tracking-wider mb-2">
           {tr("Dinero de la obra")}
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
-            <div className="text-[10.5px] uppercase font-bold text-obra-text-dim">{tr("Cobrado")}</div>
+            <div className="text-[10px] uppercase font-semibold text-obra-text-dim">{tr("Cobrado")}</div>
             <div className="font-mono-obra font-bold text-sm text-obra-green">{estado === "empty" ? "0 €" : "54.000 €"}</div>
           </div>
           <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
-            <div className="text-[10.5px] uppercase font-bold text-obra-text-dim">{tr("Gastado")}</div>
+            <div className="text-[10px] uppercase font-semibold text-obra-text-dim">{tr("Gastado")}</div>
             <div className="font-mono-obra font-bold text-sm text-white">{estado === "empty" ? "0 €" : "31.420 €"}</div>
           </div>
           <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
-            <div className="text-[10.5px] uppercase font-bold text-obra-text-dim">{tr("Balance")}</div>
+            <div className="text-[10px] uppercase font-semibold text-obra-text-dim">{tr("Balance")}</div>
             <div className="font-mono-obra font-bold text-sm text-[#d7dc9a]">{estado === "empty" ? "0 €" : "+22.580 €"}</div>
           </div>
         </div>
