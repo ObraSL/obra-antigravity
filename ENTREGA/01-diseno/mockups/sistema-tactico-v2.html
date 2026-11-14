@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control de Obra v2 — Maquetas del Sistema de Diseño Táctico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F2F4F0;
+      --card: #FFFFFF;
+      --border: #D5DDD6;
+      --line: #C6D0C8;
+      --slate: #1E2520;
+      --slate-card: #28312B;
+      --slate-border: #39463D;
+      --text: #141915;
+      --text-dim: #3F4B42;
+      --text-faint: #566459;
+      --lime: #D4E565;
+      --lime-ink: #141915;
+      --green: #15803D;
+      --green-bright: #34D399;
+      --orange: #C2410C;
+      --red: #B91C1C;
+      --red-bg: #FEE2E2;
+      --nav-bg: #181E1A;
+      --font-display: 'Barlow Condensed', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #141915;
+      color: #F7F9F5;
+      font-family: var(--font-body);
+      padding: 28px 24px 60px;
+    }
+    .showcase-header {
+      max-width: 1440px;
+      margin: 0 auto 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid #2E3831;
+      padding-bottom: 18px;
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--lime);
+      color: var(--lime-ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .showcase-title {
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #F7F9F5;
+    }
+    .showcase-sub {
+      font-size: 13.5px;
+      color: #A3B1A7;
+      margin-top: 2px;
+    }
+    .token-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .token-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #1E2520;
+      border: 1px solid #39463D;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .grid-phones {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 24px;
+    }
+    .phone-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .phone-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: #A3B1A7;
+      padding: 0 4px;
+    }
+    .phone-caption strong {
+      color: var(--lime);
+      font-family: var(--font-body);
+      font-size: 13px;
+    }
+    .phone-frame {
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 32px;
+      border: 6px solid #28312B;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+      overflow: hidden;
+      min-height: 670px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .topbar {
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .obra-selector {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+    .dot-live {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+      margin-right: 7px;
+      box-shadow: 0 0 0 3px rgba(21,128,61,0.18);
+    }
+    .content {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .hero-slate {
+      background: var(--slate);
+      color: #F7F9F5;
+      border-radius: 22px;
+      padding: 16px;
+      border: 1px solid var(--slate-border);
+      box-shadow: 0 10px 24px rgba(20,25,21,0.18);
+    }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #A3B1A7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .pill-lime {
+      background: rgba(212,229,101,0.16);
+      color: var(--lime);
+      border: 1px solid rgba(212,229,101,0.35);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-family: var(--font-mono);
+    }
+    .big-num {
+      font-family: var(--font-mono);
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.05;
+      margin-top: 6px;
+      color: #F7F9F5;
+    }
+    .equalizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 46px;
+      margin-top: 12px;
+      padding-top: 6px;
+    }
+    .eq-bar {
+      flex: 1;
+      border-radius: 3px;
+      background: #39463D;
+    }
+    .eq-bar.done { background: var(--lime); }
+    .eq-bar.active { background: var(--green-bright); }
+    .eq-bar.late { background: #F87171; }
+    .card-white {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .stamp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .stamp-btn {
+      border-radius: 14px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-align: center;
+      min-height: 68px;
+      justify-content: center;
+    }
+    .stamp-done-in {
+      background: rgba(21,128,61,0.08);
+      border: 2px solid var(--green);
+      color: var(--green);
+    }
+    .stamp-cta-out {
+      background: var(--lime);
+      border: 2px solid #141915;
+      color: var(--lime-ink);
+      box-shadow: 0 4px 12px rgba(212,229,101,0.35);
+    }
+    .stamp-pending {
+      background: rgba(245,158,11,0.12);
+      border: 2px dashed #D97706;
+      color: #B45309;
+    }
+    .stamp-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .stamp-time {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .ledger-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .ledger-cell {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+    }
+    .ledger-cell .lbl {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .ledger-cell .val {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+    .gantt-step {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 10px;
+      position: relative;
+    }
+    .gantt-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .gantt-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .gantt-track {
+      height: 10px;
+      background: #E3E8E4;
+      border-radius: 999px;
+      position: relative;
+      overflow: hidden;
+    }
+    .gantt-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: 999px;
+    }
+    .bottom-nav {
+      margin: auto 16px 14px;
+      background: var(--nav-bg);
+      border: 1px solid var(--slate-border);
+      border-radius: 999px;
+      padding: 6px;
+      display: flex;
+      justify-content: space-around;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+    }
+    .nav-dot {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #8E9E93;
+    }
+    .nav-dot.active {
+      background: var(--lime);
+      color: var(--lime-ink);
+    }
+    .btn-primary {
+      background: var(--lime);
+      color: var(--lime-ink);
+      border: 1.5px solid #141915;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 800;
+      font-size: 14px;
+      text-align: center;
+      display: block;
+      width: 100%;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header class="showcase-header">
+    <div class="brand-row">
+      <div class="brand-badge">
+        <svg width="24" height="24" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="14">
+          <path d="M14 72 L50 16 L86 72" />
+          <path d="M34 88 L94 88" />
+        </svg>
+      </div>
+      <div>
+        <div class="showcase-title">Control de Obra v2 — Tactical Architectural Slate &amp; Signal Lime</div>
+        <div class="showcase-sub">Fase 1: Sistema de Diseño Original · Contraste Solar AAA (16.4:1 / 11.6:1) · Multilingüe ES / UK / EN</div>
+      </div>
+    </div>
+    <div class="token-pills">
+      <span class="token-pill"><span class="swatch" style="background:#F2F4F0"></span>--obra-bg #F2F4F0</span>
+      <span class="token-pill"><span class="swatch" style="background:#1E2520"></span>--obra-slate #1E2520</span>
+      <span class="token-pill"><span class="swatch" style="background:#D4E565"></span>--obra-yellow #D4E565 (11.6:1 AAA)</span>
+      <span class="token-pill"><span class="swatch" style="background:#15803D"></span>--obra-green #15803D</span>
+      <span class="token-pill"><span class="swatch" style="background:#C2410C"></span>--obra-orange #C2410C</span>
+    </div>
+  </header>
+
+  <main class="grid-phones">
+    <!-- PANTALLA 1: TRABAJADOR / SELLO TÁCTICO EN 2 SEGUNDOS -->
+    <section class="phone-wrap">
+      <div class="phone-caption">
+        <strong>01 · Portada Trabajador + Sello Táctico (ES)</strong>
+        <span>HOM-W1..W5 · FIC-01..10</span>
+      </div>
+      <div class="phone-frame">
+        <div class="topbar">
+          <div class="obra-selector">
+            <span><span class="dot-live"></span>Reforma Integral C/ Serrano 48</span>
+            <span>▾</span>
+          </div>
+        </div>
+        <div class="content">
+          <div class="hero-slate">
+            <div class="eyebrow">
+              <span>PROGRESO DE LA OBRA</span>
+              <span class="pill-lime">EN CURSO · 5 ACTIVOS</span>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;">
+              <div class="big-num">64%</div>
+              <div style="font-size:12px;color:#A3B1A7;font-family:var(--font-mono);">Fase 03 · Instalaciones</div>
+            </div>
+            <div class="equalizer">
+              <div class="eq-bar done" style="height:65%"></div>
+              <div class="eq-bar done" style="height:80%"></div>
+              <div class="eq-bar done" style="height:100%"></div>
+              <div class="eq-bar done" style="height:90%"></div>
+              <div class="eq-bar done" style="height:75%"></div>
+              <div class="eq-bar done" style="height:85%"></div>
+              <div class="eq-bar done" style="height:95%"></div>
+              <div class="eq-bar done" style="height:70%"></div>
+              <div class="eq-bar active" style="height:88%"></div>
+              <div class="eq-bar active" style="height:60%"></div>
+              <div class="eq-bar late" style="height:40%"></div>
+              <div class="eq-bar" style="height:30%"></div>
+              <div class="eq-bar" style="height:45%"></div>
+              <div class="eq-bar" style="height:55%"></div>
+              <div class="eq-bar" style="height:35%"></div>
+              <div class="eq-bar" style="height:25%"></div>
+            </div>
+          </div>
+
+          <div class="card-white">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--green);letter-spacing:0.05em;">● TU FICHAJE DE HOY · GPS ±6m</div>
+                <div style="font-size:17px;font-weight:700;margin-top:2px;">Dmytro Kovalenko</div>
+                <div style="font-size:12.5px;color:var(--text-dim);">Oficial 1ª Electricista · Hoy 5h 42m</div>
+              </div>
+              <span class="badge" style="background:#ECFDF5;color:#15803D;border:1px solid #A7F3D0;">Furgoneta</span>
+            </div>
+
+            <div style="margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12.5px;color:var(--text-dim);">
+              📍 <strong>Tarea:</strong> Planta 2 — Cuadro general y rozas salón
+            </div>
+
+            <div class="stamp-grid">
+              <div class="stamp-btn stamp-done-in">
+                <span class="stamp-label">✓ Entrada fichada</span>
+                <span class="stamp-time">08:02</span>
+              </div>
+              <div class="stamp-btn stamp-cta-out">
+                <span class="stamp-label">→ Fichar Salida</span>
+                <span class="stamp-time">TOCAR AHORA</span>
+              </div>
+            </div>
+
+            <div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:#FEF3C7;border:1px solid #FDE68A;font-size:11.5px;color:#92400E;">
+              ⚡ <strong>Modo sin cobertura listo:</strong> Si bajas al sótano sin red, tu fichaje se guarda en el móvil y se envía solo.
+            </div>
+          </div>
+
+          <div class="card-white" style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-dim);">Mis últimos 14 días</div>
+              <div style="font-size:13px;font-weight:600;margin-top:2px;">84h 30m acumuladas · 1 día corregido</div>
+            </div>
+            <span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);">Ver ▾</span>
+          </div>
+        </div>
+        <nav class="bottom-nav">
+          <div class="nav-dot active">Inicio</div>
+          <div class="nav-dot">Furgos</div>
+          <div class="nav-dot">Ajustes</div>
+        </nav>
+      </div>
+    </section>
+
+    <!-- PANTALLA 2: PORTADA DUEÑO / TELEMETRÍA Y BALANCE -->
+    <section class="phone-wrap">
+      <div class="phone-caption">
+        <strong>02 · Portada Dueño + Libro Mayor (ES)</strong>
+        <span>HOM-01..07 · DIN-01</span>
+      </div>
+      <div class="phone-frame">
+        <div class="topbar">
+          <div class="obra-selector">
+            <span><span class="dot-live"></span>Reforma Integral C/ Serrano 48</span>
+            <span>▾</span>
+          </div>
+          <div style="width:38px;height:38px;border-radius:10px;background:#FFF;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;">📅</div>
+        </div>
+        <div class="content">
+          <div class="hero-slate">
+            <div class="eyebrow">
+              <span>AVANCE PONDERADO · PLAN DE OBRA</span>
+              <span class="pill-lime">85.706,00 €</span>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;">
+              <div class="big-num">64,25%</div>
+              <div style="text-align:right;font-size:11.5px;color:#A3B1A7;">
+                <div>6 cap. en marcha · <span style="color:#F87171;font-weight:700;">1 retrasado</span></div>
+                <div style="color:var(--lime);font-family:var(--font-mono);">428h 15m · 7.924,50 € M.O.</div>
+              </div>
+            </div>
+            <div class="equalizer">
+              <div class="eq-bar done" style="height:100%"></div>
+              <div class="eq-bar done" style="height:100%"></div>
+              <div class="eq-bar done" style="height:95%"></div>
+              <div class="eq-bar done" style="height:85%"></div>
+              <div class="eq-bar active" style="height:75%"></div>
+              <div class="eq-bar active" style="height:65%"></div>
+              <div class="eq-bar active" style="height:80%"></div>
+              <div class="eq-bar late" style="height:45%"></div>
+              <div class="eq-bar" style="height:30%"></div>
+              <div class="eq-bar" style="height:25%"></div>
+              <div class="eq-bar" style="height:20%"></div>
+              <div class="eq-bar" style="height:15%"></div>
+            </div>
+          </div>
+
+          <div class="card-white">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--text-dim);letter-spacing:0.05em;">DINERO DE LA OBRA (AL CÉNTIMO)</span>
+              <span style="font-size:11.5px;font-weight:700;color:#365314;">Ir a Dinero →</span>
+            </div>
+            <div class="ledger-row">
+              <div class="ledger-cell">
+                <div class="lbl">Cobrado</div>
+                <div class="val" style="color:var(--green);">54.000,00 €</div>
+              </div>
+              <div class="ledger-cell">
+                <div class="lbl">Gastado</div>
+                <div class="val">31.420,85 €</div>
+              </div>
+              <div class="ledger-cell" style="background:#F7FEE7;border-color:#BEF264;">
+                <div class="lbl">Balance</div>
+                <div class="val" style="color:#141915;">+22.579,15 €</div>
+              </div>
+            </div>
+            <div style="margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:10px;display:flex;justify-content:space-between;font-size:12px;">
+              <span style="color:var(--text-dim);">El encargado tiene en mano:</span>
+              <strong style="font-family:var(--font-mono);color:var(--green);">+1.180,40 €</strong>
+            </div>
+          </div>
+
+          <div class="card-white">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--text-dim);">CUADRILLA HOY · 5 TRABAJANDO AHORA</span>
+              <span class="badge" style="background:#ECFDF5;color:#15803D;">6 / 7 fichados</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;">
+              <div style="display:flex;justify-content:space-between;padding:6px 8px;background:var(--bg);border-radius:8px;">
+                <span><strong>Carlos Mendoza</strong> (Encargado)</span>
+                <span style="font-family:var(--font-mono);color:var(--green);font-weight:700;">07:45 → activo</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 8px;background:var(--bg);border-radius:8px;">
+                <span><strong>Dmytro Kovalenko</strong> · <span style="color:var(--orange);font-size:11px;">Corregido ayer</span></span>
+                <span style="font-family:var(--font-mono);color:var(--green);font-weight:700;">08:02 → activo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav class="bottom-nav">
+          <div class="nav-dot active">Inicio</div>
+          <div class="nav-dot">Horas</div>
+          <div class="nav-dot">Gastos</div>
+          <div class="nav-dot">Plan</div>
+          <div class="nav-dot">Ajustes</div>
+        </nav>
+      </div>
+    </section>
+
+    <!-- PANTALLA 3: PLANIFICACIÓN GANTT ESCALONADO + UCRANIANO (UK) -->
+    <section class="phone-wrap">
+      <div class="phone-caption">
+        <strong>03 · Gantt Escalonado + Prueba Cirílico (UK)</strong>
+        <span>PLA-01..06 · GAS-01..08</span>
+      </div>
+      <div class="phone-frame">
+        <div class="topbar">
+          <div class="obra-selector">
+            <span><span class="dot-live"></span>Реконструкція C/ Serrano 48</span>
+            <span>▾</span>
+          </div>
+          <div style="padding:4px 8px;border-radius:999px;background:var(--lime);color:#141915;font-size:11px;font-weight:800;">UA</div>
+        </div>
+        <div class="content">
+          <div class="card-white">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--text-dim);">ПЛАНУВАННЯ ОБ'ЄКТА (БЕЗ HORIZONTAL SCROLL)</div>
+                <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;margin-top:2px;">64% · 85.706,00 €</div>
+              </div>
+              <span class="badge" style="background:var(--slate);color:var(--lime);padding:6px 10px;">📥 Імпорт з Excel</span>
+            </div>
+
+            <div class="gantt-step">
+              <div class="gantt-row">
+                <div class="gantt-meta">
+                  <span>01. Демонтаж та підготовка</span>
+                  <span style="font-family:var(--font-mono);color:var(--green);">100% · 9.450 €</span>
+                </div>
+                <div class="gantt-track">
+                  <div class="gantt-fill" style="left:0%;width:24%;background:var(--green);"></div>
+                </div>
+              </div>
+
+              <div class="gantt-row">
+                <div class="gantt-meta">
+                  <span>02. Мурування та перегородки</span>
+                  <span style="font-family:var(--font-mono);color:#365314;">75% · 21.800 €</span>
+                </div>
+                <div class="gantt-track">
+                  <div class="gantt-fill" style="left:18%;width:36%;background:var(--lime);border:1px solid #141915;"></div>
+                </div>
+              </div>
+
+              <div class="gantt-row">
+                <div class="gantt-meta">
+                  <span>03. Електрика та сантехніка</span>
+                  <span style="font-family:var(--font-mono);color:var(--red);">35% (Запізнення) · 18.200 €</span>
+                </div>
+                <div class="gantt-track">
+                  <div class="gantt-fill" style="left:32%;width:28%;background:var(--red);"></div>
+                </div>
+              </div>
+
+              <div class="gantt-row">
+                <div class="gantt-meta">
+                  <span>04. Оздоблення та столярка</span>
+                  <span style="font-family:var(--font-mono);color:var(--text-faint);">0% · 36.256 €</span>
+                </div>
+                <div class="gantt-track">
+                  <div class="gantt-fill" style="left:58%;width:42%;background:#9CA89E;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-white" style="border:2px solid var(--slate);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-family:var(--font-display);font-size:18px;font-weight:800;text-transform:uppercase;">ВИПРАВИТИ ГОДИНИ (ВЛАСНИК)</span>
+              <span class="badge" style="background:#FEE2E2;color:#991B1B;">Залишає слід в історії</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <div style="background:var(--bg);padding:8px;border-radius:10px;border:1px solid var(--border);">
+                <div style="font-size:10.5px;color:var(--text-dim);font-weight:700;">ВХІД</div>
+                <div style="font-family:var(--font-mono);font-size:15px;font-weight:700;">08:00</div>
+              </div>
+              <div style="background:var(--bg);padding:8px;border-radius:10px;border:1px solid var(--border);">
+                <div style="font-size:10.5px;color:var(--text-dim);font-weight:700;">ВИХІД</div>
+                <div style="font-family:var(--font-mono);font-size:15px;font-weight:700;">17:30</div>
+              </div>
+            </div>
+            <div class="btn-primary">Зберегти години (9h 30m)</div>
+          </div>
+        </div>
+        <nav class="bottom-nav">
+          <div class="nav-dot">Головна</div>
+          <div class="nav-dot">Години</div>
+          <div class="nav-dot">Витрати</div>
+          <div class="nav-dot active">План</div>
+          <div class="nav-dot">Опції</div>
+        </nav>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
