@@ -26,7 +26,7 @@ import { useIdioma } from "@/lib/i18n/provider";
 import { fmtEUR, fmtDate } from "@/lib/format";
 import { LogIn, LogOut } from "lucide-react";
 
-type ViewportWidth = 320 | 375 | 430 | 768 | 1280;
+type ViewportWidth = 320 | 375 | 393 | 430 | 768 | 1280;
 
 export default function GaleriaScreenPage({
   params,
@@ -41,9 +41,10 @@ export default function GaleriaScreenPage({
 
   const viewports: { tag: string; width: ViewportWidth; icon: React.ReactNode }[] = [
     { tag: "320px (SE)", width: 320, icon: <Smartphone size={14} /> },
-    { tag: "375px (Móvil)", width: 375, icon: <Smartphone size={15} /> },
-    { tag: "430px (Max)", width: 430, icon: <Smartphone size={16} /> },
-    { tag: "768px (Tablet)", width: 768, icon: <Tablet size={16} /> },
+    { tag: "375px (iPhone 14)", width: 375, icon: <Smartphone size={15} /> },
+    { tag: "393px (15 Pro)", width: 393, icon: <Smartphone size={15} /> },
+    { tag: "430px (Pro Max)", width: 430, icon: <Smartphone size={16} /> },
+    { tag: "768px (iPad)", width: 768, icon: <Tablet size={16} /> },
     { tag: "1280px (Escritorio)", width: 1280, icon: <Laptop size={16} /> },
   ];
 
@@ -157,6 +158,7 @@ function renderScreenContent(
     case "alta":
       return <GaleriaAltaMock />;
 
+    case "movil":
     case "home-dueno":
       return <GaleriaHomeDuenoMock estado={ctx.estado} />;
 
@@ -273,13 +275,13 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
       <div className="flex items-center justify-between pb-1">
         <div className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/avatar-alex.png" alt="Alex" className="h-9 w-9 rounded-xl border border-white/20 object-cover" />
+          <img src="/avatar-alex.png" alt="Alex" className="h-9 w-9 rounded-xl border border-white/18 bg-[#141915] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.3)]" />
           <div>
             <div className="font-semibold text-sm text-white leading-tight">Morning Alex</div>
             <div className="text-[11px] text-white/70 truncate max-w-[180px]">{OBRA_FIXTURE.nombre}</div>
           </div>
         </div>
-        <span className="font-mono text-xs bg-[#68746a]/85 border border-white/18 px-2.5 py-1.5 rounded-xl text-white">🔔</span>
+        <span className="font-mono text-xs bg-[#141915]/90 border border-white/14 px-2.5 py-1.5 rounded-xl text-white shadow-xs">🔔</span>
       </div>
 
       {/* Row: Active Projects + See More */}
@@ -316,13 +318,13 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
           className="mt-3 h-[78px]"
         />
 
-        {/* Dos sub-tarjetas exactas al референс: Speedometer Gauge + Attendance / Alerts */}
+        {/* Dos sub-tarjetas exactas al референс: Speedometer Gauge + Attendance / Alerts en Obsidiana */}
         <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-          <div className="flex h-[88px] items-center justify-center rounded-[18px] border border-white/12 bg-[#525b53]/95 px-1 pt-1 shadow-inner">
+          <div className="flex h-[88px] items-center justify-center rounded-[18px] border border-white/12 bg-[#121613]/95 px-1 pt-1 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_4px_16px_rgba(0,0,0,0.25)]">
             <GaugeMeter valor={estado === "empty" ? 0 : 64} className="w-full" />
           </div>
 
-          <div className="flex h-[88px] flex-col justify-between rounded-[18px] border border-white/12 bg-[#525b53]/95 p-3 shadow-inner">
+          <div className="flex h-[88px] flex-col justify-between rounded-[18px] border border-white/12 bg-[#121613]/95 p-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_4px_16px_rgba(0,0,0,0.25)]">
             <div className="flex items-center justify-between">
               <span className="text-[12.5px] font-medium text-white/90">
                 Attendance
@@ -349,24 +351,24 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
           {tr("Dinero de la obra")}
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
+          <div className="bg-[#121613] p-2 rounded-xl border border-white/10 shadow-xs">
             <div className="text-[10px] uppercase font-semibold text-obra-text-dim">{tr("Cobrado")}</div>
             <div className="font-mono-obra font-bold text-sm text-obra-green">{estado === "empty" ? "0 €" : "54.000 €"}</div>
           </div>
-          <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
+          <div className="bg-[#121613] p-2 rounded-xl border border-white/10 shadow-xs">
             <div className="text-[10px] uppercase font-semibold text-obra-text-dim">{tr("Gastado")}</div>
             <div className="font-mono-obra font-bold text-sm text-white">{estado === "empty" ? "0 €" : "31.420 €"}</div>
           </div>
-          <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
+          <div className="bg-[#121613] p-2 rounded-xl border border-white/10 shadow-xs">
             <div className="text-[10px] uppercase font-semibold text-obra-text-dim">{tr("Balance")}</div>
             <div className="font-mono-obra font-bold text-sm text-[#d7dc9a]">{estado === "empty" ? "0 €" : "+22.580 €"}</div>
           </div>
         </div>
       </Card>
 
-      {/* Cápsula de navegación móvil inferior (Dribbble Ref) */}
+      {/* Cápsula de navegación móvil inferior en Obsidiana (Dribbble Ref) */}
       <div className="pt-2 flex justify-center pb-1">
-        <div className="relative flex w-full max-w-[320px] items-center justify-around overflow-hidden rounded-[22px] border border-white/18 bg-[#68736b]/88 px-2 py-1.5 backdrop-blur-xl shadow-lg">
+        <div className="relative flex w-full max-w-[320px] items-center justify-around overflow-hidden rounded-[24px] border border-white/14 bg-[#0e120f]/94 px-2 py-1.5 backdrop-blur-2xl shadow-[0_20px_40px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.18)]">
           <div
             className="pointer-events-none absolute inset-y-0 right-0 w-20 opacity-60"
             style={{
@@ -374,19 +376,19 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
                 "radial-gradient(circle at 85% 90%, rgba(224,130,109,0.55) 0%, transparent 72%)",
             }}
           />
-          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#49524b] text-white">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#1c221e] text-[#d7dc9a] border border-white/10 shadow-xs">
             <Clock size={18} />
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/80">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/70">
             <Receipt size={18} />
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/80">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/70">
             <Calendar size={18} />
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/80">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/70">
             <Truck size={18} />
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/80">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/70">
             <Wallet size={18} />
           </div>
         </div>

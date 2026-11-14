@@ -204,15 +204,15 @@ function InicioGestor() {
             className="mt-3.5 h-[84px]"
           />
 
-          {/* Dos sub-tarjetas tácticas exactas al референс: Speedometer Gauge + Attendance/Alerts */}
+          {/* Dos sub-tarjetas tácticas exactas al референс: Speedometer Gauge + Attendance/Alerts en Obsidiana */}
           <div className="mt-4 grid grid-cols-2 gap-3">
             {/* Tarjeta izquierda: Medidor semicircular (Speedometer / Tachometer) */}
-            <div className="flex h-[95px] items-center justify-center rounded-[20px] border border-white/12 bg-[#525b53]/95 px-2 pt-1 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+            <div className="flex h-[95px] items-center justify-center rounded-[20px] border border-white/12 bg-[#121613]/95 px-2 pt-1 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_4px_16px_rgba(0,0,0,0.25)]">
               <GaugeMeter valor={avance} className="w-full" />
             </div>
 
             {/* Tarjeta derecha: Attendance & Alerts */}
-            <div className="flex h-[95px] flex-col justify-between rounded-[20px] border border-white/12 bg-[#525b53]/95 p-3.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+            <div className="flex h-[95px] flex-col justify-between rounded-[20px] border border-white/12 bg-[#121613]/95 p-3.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_4px_16px_rgba(0,0,0,0.25)]">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-medium text-white/90">
                   Attendance
