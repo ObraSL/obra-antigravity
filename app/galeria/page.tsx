@@ -26,6 +26,13 @@ export default function GaleriaIndexPage() {
 
   const pantallas = [
     {
+      id: "movil",
+      titulo: "00. Teléfono Interactivo en Vivo (/galeria/movil)",
+      desc: "Simulador interactivo con iPhone Pro Max, iPhone 15, SE y Android. Navega en vivo, pulsa botones y prueba transiciones.",
+      icon: Smartphone,
+      roles: ["Interactivo en vivo"],
+    },
+    {
       id: "landing",
       titulo: "01. Portada Pública (LandingMock)",
       desc: "Maqueta pública sin sesión en 100dvh sin scroll vertical ni horizontal.",
