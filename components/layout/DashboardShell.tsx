@@ -1,0 +1,45 @@
+"use client";
+
+import { Loader2 } from "lucide-react";
+import { useObra } from "@/lib/obra-context";
+import { useMiembro } from "@/lib/miembro-context";
+import { Sidebar } from "./Sidebar";
+import { TopBar } from "./TopBar";
+import { BottomNav } from "./BottomNav";
+import { SinObras } from "./SinObras";
+import { SinObrasAsignadas } from "./SinObrasAsignadas";
+import { PullToRefresh } from "./PullToRefresh";
+
+export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const { obras, loading } = useObra();
+  const { gestiona } = useMiembro();
+
+  return (
+    <div className="flex min-h-[100dvh]">
+      <Sidebar />
+      {/* min-w-0 es imprescindible: por defecto un hijo de un flex NO se
+          encoge por debajo del ancho mínimo de su contenido, así que en
+          cuanto una tarjeta pedía más que la pantalla estiraba TODA la
+          página y en el iPhone se podía arrastrar de lado. Sin esto, el
+          arreglo del rebote no sirve de nada. */}
+      <div className="flex min-h-[100dvh] min-w-0 flex-1 flex-col">
+        <TopBar />
+        <main className="flex-1 pb-6">
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="animate-spin text-obra-yellow" size={26} />
+            </div>
+          ) : obras.length === 0 ? (
+            // Solo quien puede crear obras ve el formulario de "crea la primera".
+            gestiona ? <SinObras /> : <SinObrasAsignadas />
+          ) : (
+            <PullToRefresh>
+              <div className="mx-auto max-w-3xl px-4 pb-28 pt-4 md:px-6 md:py-6">{children}</div>
+            </PullToRefresh>
+          )}
+        </main>
+        {obras.length > 0 && <BottomNav />}
+      </div>
+    </div>
+  );
+}

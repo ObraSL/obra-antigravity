@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------
+   TOKENS — Identidad Táctica: Pizarra Mineral y Lima Señal
+   (Tactical Architectural Slate & Signal Lime).
+   Optimizado para legibilidad bajo sol directo en obra (AAA 16.4:1 / 11.6:1),
+   con paneles tácticos oscuros (14.2:1 AAA) y cero desbordamiento horizontal.
+------------------------------------------------------------------ */
+@theme {
+  /* Lienzo y superficies claras */
+  --color-obra-bg: #f2f4f0;
+  --color-obra-bg-elevated: #ffffff;
+  --color-obra-card: #ffffff;
+  --color-obra-card-border: #d5ddd6;
+  --color-obra-line: #c6d0c8;
+
+  /* Paneles tácticos oscuros (Hero de avance, cabeceras de mando) */
+  --color-obra-slate: #1e2520;
+  --color-obra-slate-card: #28312b;
+  --color-obra-slate-border: #39463d;
+
+  /* Tipografía y contraste solar */
+  --color-obra-text: #141915;
+  --color-obra-text-dim: #3f4b42;
+  --color-obra-text-faint: #566459;
+
+  /* Señal e interacción principal: Signal Lime (11.6:1 AAA sobre texto oscuro) */
+  --color-obra-yellow: #d4e565;
+  --color-obra-yellow-dim: #b8c758;
+  --color-obra-yellow-ink: #141915;
+  --color-obra-accent-ink: #365314;
+
+  /* Estados operativos */
+  --color-obra-orange: #c2410c;
+  --color-obra-green: #15803d;
+  --color-obra-green-bright: #34d399;
+  --color-obra-red: #b91c1c;
+  --color-obra-red-bg: #fee2e2;
+  --color-obra-red-text: #991b1b;
+
+  /* Cápsula de navegación inferior flotante */
+  --color-obra-nav-bg: #181e1a;
+  --color-obra-nav-border: #2e3831;
+
+  /* Familias tipográficas */
+  --font-display: var(--font-barlow-condensed), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-mono-obra: var(--font-jetbrains-mono), monospace;
+}
+
+html,
+body {
+  height: 100%;
+
+  /* iPhone / Android: evitar cualquier rebote o arrastre horizontal */
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+body {
+  background: var(--color-obra-bg);
+  color: var(--color-obra-text);
+  font-family: var(--font-body);
+
+  /*
+    Reglas de oro para ergonomía de obra en pantalla móvil:
+    - overscroll-behavior: quita el rebote elástico.
+    - touch-action: pan-y evita el desplazamiento horizontal accidental con el pulgar.
+    - text-size-adjust: Safari iOS no agranda el texto por su cuenta.
+  */
+  overscroll-behavior: none;
+  touch-action: pan-y;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Inputs de fecha/número con esquema adaptado */
+input,
+select,
+textarea {
+  color-scheme: light;
+}
+
+::selection {
+  background: var(--color-obra-yellow);
+  color: var(--color-obra-yellow-ink);
+}
