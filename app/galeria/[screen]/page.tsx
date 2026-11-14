@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Laptop, Smartphone, Tablet } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Laptop, Receipt, Smartphone, Tablet, Truck, Wallet } from "lucide-react";
 import clsx from "clsx";
 import { LandingMock } from "@/components/landing/LandingMock";
 import { Gantt } from "@/components/planificacion/Gantt";
@@ -325,6 +325,34 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
           </div>
         </div>
       </Card>
+
+      {/* Cápsula de navegación móvil inferior (Dribbble Ref) */}
+      <div className="pt-2 flex justify-center pb-1">
+        <div className="relative flex w-full max-w-[320px] items-center justify-around overflow-hidden rounded-[22px] border border-white/18 bg-[#68736b]/88 px-2 py-1.5 backdrop-blur-xl shadow-lg">
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-20 opacity-60"
+            style={{
+              background:
+                "radial-gradient(circle at 85% 90%, rgba(224,130,109,0.55) 0%, transparent 72%)",
+            }}
+          />
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#49524b] text-white">
+            <Clock size={18} />
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/80">
+            <Receipt size={18} />
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/80">
+            <Calendar size={18} />
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/80">
+            <Truck size={18} />
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white/80">
+            <Wallet size={18} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
