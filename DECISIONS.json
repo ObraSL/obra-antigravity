@@ -68,6 +68,7 @@
       "tables_count": 20,
       "rpc_count": 29,
       "storage_buckets": ["facturas", "notas"],
+      "vercel_url": "https://obra-antigravity.vercel.app",
       "status": "FROZEN_APPROVED"
     }
   }

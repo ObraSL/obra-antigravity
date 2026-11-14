@@ -6,7 +6,8 @@ import { NextResponse, type NextRequest } from "next/server";
 // por igualdad exacta, no con startsWith, porque si no coincidiría con
 // cualquier ruta y dejaría todo sin proteger.
 // /alta y sus /api: alta de empresa nueva con pago (todavía sin cuenta).
-const PUBLIC_PATHS = ["/login", "/reset-password", "/alta", "/api/alta", "/api/stripe", "/plantilla-plan-obra.xlsx"];
+// /galeria: galería interactiva para revisión visual sin login.
+const PUBLIC_PATHS = ["/login", "/reset-password", "/alta", "/api/alta", "/api/stripe", "/plantilla-plan-obra.xlsx", "/galeria"];
 const EXACT_PUBLIC_PATHS = ["/"];
 // De estas, solo /login manda de vuelta a "/" si ya hay sesión. /reset-password
 // no, porque el enlace de recuperación de Supabase también crea una sesión
