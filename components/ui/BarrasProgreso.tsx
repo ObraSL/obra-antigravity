@@ -1,51 +1,102 @@
 /**
- * Momento Firma #2: Telemetría de Barras Ecualizador.
- * Segmentos verticales tácticos con gradación desde Pizarra Salvia (#39463D)
- * hasta Esmeralda (#34D399) y rematando en Signal Lime (#D4E565).
+ * Momento Firma #2: Telemetría de Barras Ecualizador (Dribbble Ref Screen 2).
+ * 15 cápsulas verticales redondeadas:
+ * - Tramo completado: alternancia táctica Blanco Puro (#FFFFFF) y Pistachio-Lime (#D7DC9A)
+ * - Aguja central con nodo circular superior y puntero triangular inferior
+ * - Cápsulas de transición en Coral (#E0826D)
+ * - Tramo pendiente en Carbón Oliva (#181C19)
  */
-
-const COLOR_INICIO = [57, 70, 61]; // Slate #39463D
-const COLOR_MEDIO = [52, 211, 153]; // Emerald #34D399
-const COLOR_LIME = [212, 229, 101]; // Signal Lime #D4E565
-
-const mezcla = (t: number) => {
-  if (t < 0.6) {
-    const localT = t / 0.6;
-    const c = COLOR_INICIO.map((ci, i) => Math.round(ci + (COLOR_MEDIO[i] - ci) * localT));
-    return `rgb(${c[0]},${c[1]},${c[2]})`;
-  }
-  const localT = (t - 0.6) / 0.4;
-  const c = COLOR_MEDIO.map((cm, i) => Math.round(cm + (COLOR_LIME[i] - cm) * localT));
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-};
 
 export function BarrasProgreso({
   valores,
+  porcentaje,
   className = "",
 }: {
   valores: number[];
+  porcentaje?: number;
   className?: string;
 }) {
-  const max = Math.max(1, ...valores);
+  // Aseguramos 15 barras tácticas como en la referencia Dribbble
+  const totalBarras = 15;
+  const serie =
+    valores.length >= totalBarras
+      ? valores.slice(0, totalBarras)
+      : [
+          ...valores,
+          ...Array(totalBarras - valores.length).fill(0),
+        ];
+
+  const max = Math.max(1, ...serie);
+  const tieneDatos = serie.some((v) => v > 0);
+  const pct = porcentaje != null ? Math.max(0, Math.min(100, Math.round(porcentaje))) : 64;
+  const indiceAguja = Math.min(
+    totalBarras - 2,
+    Math.max(1, Math.round((pct / 100) * (totalBarras - 1)))
+  );
+
+  // Alturas orgánicas de respaldo cuando la obra aún tiene pocas horas registradas
+  const alturasRef = [78, 92, 84, 72, 96, 88, 76, 94, 58, 26, 26, 26, 82, 92, 68];
 
   return (
-    <div className={`flex items-end gap-[3px] ${className}`} aria-hidden>
-      {valores.map((v, i) => {
-        const t = valores.length > 1 ? i / (valores.length - 1) : 1;
-        const color = mezcla(t);
-        const alturaPct = Math.max(8, (v / max) * 100);
+    <div className={`relative flex flex-col ${className}`} aria-hidden>
+      <div className="relative flex flex-1 items-center justify-between gap-[6px] px-1 pt-2 pb-5">
+        {serie.map((v, i) => {
+          const alturaBase = tieneDatos
+            ? Math.max(24, Math.round((v / max) * 95))
+            : alturasRef[i % alturasRef.length];
 
-        return (
-          <div
-            key={i}
-            className="flex-1 rounded-t-[3px] transition-all"
-            style={{
-              height: `${alturaPct}%`,
-              background: color,
-            }}
-          />
-        );
-      })}
+          const esAguja = i === indiceAguja;
+          const esCompletado = i < indiceAguja;
+          const esCoral = i > indiceAguja && i <= indiceAguja + 3;
+
+          let bg = "#181c19";
+          let alturaPct = alturaBase;
+
+          if (esAguja) {
+            bg = "#d7dc9a";
+            alturaPct = 96;
+          } else if (esCompletado) {
+            bg = i % 2 === 1 ? "#ffffff" : "#d7dc9a";
+            alturaPct = Math.max(66, alturaBase);
+          } else if (esCoral) {
+            bg = "#e0826d";
+            alturaPct = 24;
+          } else {
+            bg = "#181c19";
+            alturaPct = Math.max(68, alturaBase);
+          }
+
+          return (
+            <div
+              key={i}
+              className="relative flex h-full flex-1 items-center justify-center"
+            >
+              {esAguja && (
+                <>
+                  {/* Nodo circular superior de la aguja */}
+                  <span className="absolute -top-1.5 z-10 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#68746a]" />
+                  {/* Línea vertical de la aguja */}
+                  <span className="absolute inset-y-0 z-0 w-[2px] bg-white/90" />
+                  {/* Triángulo inferior e indicador de porcentaje */}
+                  <div className="absolute -bottom-5 z-10 flex flex-col items-center">
+                    <span className="h-0 w-0 border-x-[4px] border-b-[5px] border-x-transparent border-b-white" />
+                    <span className="mt-0.5 font-mono-obra text-[11.5px] font-bold leading-none text-white">
+                      {pct}%
+                    </span>
+                  </div>
+                </>
+              )}
+              <div
+                className="w-full max-w-[10px] rounded-full transition-all duration-300"
+                style={{
+                  height: `${alturaPct}%`,
+                  background: bg,
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -53,3 +53,6 @@ next-env.d.ts
 /_ref-v1/
 /_pack/
 /.tmp/
+
+.vercel
+.env*

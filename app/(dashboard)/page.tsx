@@ -136,78 +136,141 @@ function InicioGestor() {
 
   return (
     <div>
-      <div className="mb-5">
-        <div className="font-display text-2xl font-bold uppercase text-obra-text">
-          {obraActual.nombre}
-        </div>
-        {obraActual.direccion && (
-          <div className="text-sm text-obra-text-faint">{obraActual.direccion}</div>
-        )}
+      {/* Cabecera estilo Dribbble Screen 2: Active Projects + See More */}
+      <div className="mb-2 flex items-baseline justify-between">
+        <h1 className="text-[19px] font-bold tracking-tight text-white">
+          {tr("Avance de la obra")}
+        </h1>
+        <Link
+          href="/planificacion"
+          className="text-[12.5px] font-semibold text-white/75 transition hover:text-white"
+        >
+          {tr("Planificación")} →
+        </Link>
       </div>
 
-      {/* Portada: el avance en grande y las horas de las dos últimas semanas,
-          como en la referencia de diseño. */}
-      <div className="relative overflow-hidden rounded-[28px] border border-obra-card-border bg-obra-card p-5 shadow-[0_10px_30px_rgba(33,28,21,0.08)]">
+      {/* Render 3D del edificio en construcción con grúa y encofrado amarillo (Screen 2 Dribbble) */}
+      <div className="relative -mx-2 overflow-hidden">
+        <div className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-[14px] border border-white/18 bg-[#556058]/90 px-3.5 py-1.5 text-[12px] font-semibold text-white backdrop-blur-md shadow-[0_8px_20px_rgba(0,0,0,0.22)]">
+          <span
+            className={clsx(
+              "h-2 w-2 rounded-full",
+              retrasadas > 0 ? "bg-[#e0826d]" : "bg-[#d7dc9a]"
+            )}
+          />
+          <span>{retrasadas > 0 ? tr("{n} con retraso", { n: retrasadas }) : "On Track"}</span>
+        </div>
+
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero-construction.png"
+          alt={obraActual.nombre}
+          className="mx-auto block h-[220px] w-full max-w-[420px] object-contain object-bottom select-none sm:h-[250px]"
+        />
+      </div>
+
+      {/* Tarjeta principal de vidrio esmerilado oliva (Screen 2 Dribbble) */}
+      <div className="relative z-10 -mt-5 overflow-hidden rounded-[30px] border border-white/18 bg-[#68746a]/92 p-5 backdrop-blur-xl shadow-[0_18px_42px_rgba(12,16,13,0.3)]">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 140% at 100% 0%, rgba(242,133,27,0.16) 0%, rgba(214,73,31,0.07) 32%, transparent 62%)",
+              "radial-gradient(115% 95% at 88% 0%, rgba(238,195,142,0.22) 0%, rgba(215,220,154,0.08) 40%, transparent 70%)",
           }}
         />
         <div className="relative">
-          <div className="text-xs font-semibold uppercase tracking-wide text-obra-text-dim">
-            {tr("Avance de la obra")}
-          </div>
-
-          <div className="mt-2.5 flex items-start justify-between gap-3">
-            <NumeroGrande valor={avance} />
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="truncate text-[19px] font-bold leading-snug text-white">
+                {obraActual.nombre}
+              </div>
+              {obraActual.direccion && (
+                <div className="mt-0.5 truncate text-[12.5px] text-white/75">
+                  {obraActual.direccion}
+                </div>
+              )}
+            </div>
             <Link
               href="/planificacion"
-              className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-obra-nav-bg text-white"
+              className="mt-1 flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold text-white/90 transition hover:bg-white/20"
               aria-label={tr("Ver la planificación")}
             >
-              <ArrowUpRight size={17} />
+              <span>{Math.round(avance)}%</span>
+              <ArrowUpRight size={14} />
             </Link>
           </div>
 
-          {/* Sin plan el número sería un 0 sin explicación: mejor decir por qué. */}
-          {tareas.length === 0 && (
+          <div className="mt-2 flex items-baseline justify-between">
+            <NumeroGrande valor={avance} />
+            {tareas.length === 0 && (
+              <Link
+                href="/planificacion"
+                className="text-[12px] font-semibold text-[#d7dc9a]"
+              >
+                {tr("Todavía no hay plan — añádelo o tráelo del Excel")}
+              </Link>
+            )}
+          </div>
+
+          {/* Ecualizador vertical de 15 barras con aguja central (Momento Firma #2) */}
+          <BarrasProgreso
+            valores={horasDia}
+            porcentaje={avance}
+            className="mt-2 h-[88px]"
+          />
+
+          {/* Dos sub-tarjetas tácticas oscuras (Attendance & Alerts / Horas) como en Dribbble Screen 2 */}
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <Link
+              href="/fichajes"
+              className="group relative overflow-hidden rounded-[22px] border border-white/12 bg-[#525b53]/95 p-3.5 transition hover:border-white/25"
+            >
+              {/* Acento diagonal Pistachio-Lime en la esquina inferior izquierda */}
+              <div
+                className="pointer-events-none absolute -bottom-5 -left-5 h-14 w-14 rotate-45 bg-[#d7dc9a]"
+                aria-hidden
+              />
+              <div className="relative flex items-center justify-between">
+                <span className="text-[12.5px] font-semibold text-white/90">
+                  {tr("Fichados hoy")}
+                </span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/12 text-white transition group-hover:bg-[#d7dc9a] group-hover:text-[#141814]">
+                  <ArrowUpRight size={14} />
+                </span>
+              </div>
+              <div className="relative mt-3 pl-3">
+                <div className="font-mono-obra text-[24px] font-bold leading-none text-white">
+                  {fichadosHoy != null ? String(fichadosHoy) : "—"}
+                </div>
+                <div className="mt-1 text-[11px] text-white/70">
+                  {tr("Horas del mes")}: {Math.round(horasMes / 60)} h
+                </div>
+              </div>
+            </Link>
+
             <Link
               href="/planificacion"
-              className="mt-1.5 block text-[12.5px] font-semibold text-obra-yellow"
+              className="group relative overflow-hidden rounded-[22px] border border-white/12 bg-[#525b53]/95 p-3.5 transition hover:border-white/25"
             >
-              {tr("Todavía no hay plan — añádelo o tráelo del Excel")}
+              <div className="relative flex items-center justify-between">
+                <span className="text-[12.5px] font-semibold text-white/90">
+                  {rango ? tr("Fin previsto") : tr("Planificación")}
+                </span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/12 text-white transition group-hover:bg-[#d7dc9a] group-hover:text-[#141814]">
+                  <ArrowUpRight size={14} />
+                </span>
+              </div>
+              <div className="relative mt-3">
+                <div className="truncate font-mono-obra text-[18px] font-bold leading-tight text-white">
+                  {rango ? fmtDate(rango.hasta) : tr("Horas fichadas")}
+                </div>
+                <div className="mt-1 text-[11px] text-white/70">
+                  {retrasadas > 0
+                    ? tr("{n} con retraso", { n: retrasadas })
+                    : trN(tareas.length, "{n} capítulo", "{n} capítulos")}
+                </div>
+              </div>
             </Link>
-          )}
-
-          {/* Con la obra recién abierta no hay ni una hora fichada y el
-              gráfico salía como una raya plana, que parece un fallo. */}
-          {horasDia.some((h) => h > 0) ? (
-            <BarrasProgreso valores={horasDia} className="mt-4 h-[74px]" />
-          ) : (
-            <div className="mt-4 flex h-[74px] items-center justify-center rounded-xl border border-dashed border-obra-line text-[12.5px] text-obra-text-faint">
-              {tr("Sin horas fichadas estas dos semanas")}
-            </div>
-          )}
-
-          <div className="mt-2.5 flex items-end justify-between border-t border-obra-card-border pt-2.5">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-obra-text-faint">
-                {rango ? tr("Fin previsto") : tr("Últimas 2 semanas")}
-              </div>
-              <div className="text-[13.5px] font-bold text-obra-text">
-                {rango ? fmtDate(rango.hasta) : tr("Horas fichadas")}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-obra-text-faint">
-                {tr("Horas del mes")}
-              </div>
-              <div className="text-[13.5px] font-bold text-obra-text">
-                {Math.round(horasMes / 60)} h
-              </div>
-            </div>
           </div>
         </div>
       </div>

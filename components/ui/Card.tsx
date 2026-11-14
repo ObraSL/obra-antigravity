@@ -5,7 +5,7 @@ export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={clsx(
-        "rounded-2xl border border-obra-card-border bg-obra-card shadow-[0_2px_10px_rgba(20,25,21,0.05)]",
+        "rounded-[24px] border border-white/14 bg-[#5a655d]/90 backdrop-blur-xl shadow-[0_12px_30px_rgba(16,22,18,0.2)]",
         className
       )}
       {...rest}
@@ -30,18 +30,17 @@ export function StatCard({
         <div className="text-xs font-semibold uppercase tracking-wide text-obra-text-dim">
           {label}
         </div>
-        <div className="font-mono-obra text-2xl font-bold text-obra-text">{value}</div>
+        <div className="font-mono-obra text-2xl font-bold text-white">{value}</div>
         {hint && <div className="mt-0.5 text-xs text-obra-text-faint">{hint}</div>}
       </div>
-      {icon && <div className="text-obra-text-faint">{icon}</div>}
+      {icon && <div className="text-obra-yellow">{icon}</div>}
     </Card>
   );
 }
 
 /**
- * Tarjeta hero táctica (Tactical Architectural Slate) — panel de mando de alta
- * visibilidad en pizarra profunda (#1E2520), con métrica grande en blanco hueso
- * y acentos en Signal Lime (#D4E565) / Esmeralda.
+ * Tarjeta hero táctica (Dark Olive Glass) — panel de mando con vidrio oliva
+ * traslúcido, iluminación cálida superior y acentos en Pistachio-Lime (#D7DC9A).
  */
 export function HeroStatCard({
   label,
@@ -57,30 +56,30 @@ export function HeroStatCard({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[24px] border border-obra-slate-border bg-obra-slate p-5 shadow-[0_12px_28px_rgba(15,20,16,0.22)]">
+    <div className="relative overflow-hidden rounded-[26px] border border-white/16 bg-[#556058]/90 p-5 backdrop-blur-xl shadow-[0_14px_34px_rgba(14,19,15,0.26)]">
       <div
-        className="pointer-events-none absolute inset-0 opacity-40"
+        className="pointer-events-none absolute inset-0 opacity-65"
         style={{
           background:
-            "radial-gradient(110% 130% at 95% 5%, rgba(212,229,101,0.18) 0%, rgba(52,211,153,0.08) 35%, transparent 65%)",
+            "radial-gradient(110% 130% at 85% 0%, rgba(215,220,154,0.22) 0%, rgba(224,130,109,0.12) 40%, transparent 70%)",
         }}
       />
       <div className="relative flex items-start justify-between">
-        <div className="text-xs font-bold uppercase tracking-wider text-[#A3B1A7]">
+        <div className="text-xs font-bold uppercase tracking-wider text-obra-text-dim">
           {label}
         </div>
         {icon && (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-obra-slate-card text-obra-yellow border border-obra-slate-border">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-obra-yellow">
             {icon}
           </div>
         )}
       </div>
       <div className="relative mt-2 flex items-end justify-between gap-3">
         <div>
-          <div className="font-mono-obra text-4xl font-bold leading-none text-[#F7F9F5]">
+          <div className="font-mono-obra text-4xl font-bold leading-none text-white">
             {value}
           </div>
-          {sub && <div className="mt-1.5 text-xs text-[#A3B1A7]">{sub}</div>}
+          {sub && <div className="mt-1.5 text-xs text-obra-text-faint">{sub}</div>}
         </div>
         {chart && <div className="h-9 w-28 shrink-0">{chart}</div>}
       </div>

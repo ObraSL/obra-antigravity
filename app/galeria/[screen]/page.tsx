@@ -8,7 +8,7 @@ import { LandingMock } from "@/components/landing/LandingMock";
 import { Gantt } from "@/components/planificacion/Gantt";
 import { StampButton } from "@/components/ui/StampButton";
 import { BarrasProgreso } from "@/components/ui/BarrasProgreso";
-import { HeroStatCard, Card } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { PrimaryButton, GhostButton } from "@/components/ui/Button";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
 import { Logo } from "@/components/ui/Logo";
@@ -200,35 +200,43 @@ function renderScreenContent(
 
 function GaleriaLoginMock() {
   return (
-    <div className="p-6 flex min-h-[600px] flex-col justify-center">
-      <div className="text-center mb-6">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-obra-yellow text-obra-yellow-ink font-bold">
-          <Logo size={28} />
-        </div>
-        <h1 className="font-display text-2xl font-bold uppercase">{tr("Iniciar sesión")}</h1>
-        <p className="text-xs text-obra-text-faint mt-1">{tr("Inicia sesión para fichar, apuntar gastos y subir facturas")}</p>
+    <div className="p-5 flex min-h-[600px] flex-col justify-between">
+      <div className="-mx-5 flex items-center justify-center overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero-villa.png"
+          alt="Villa Render"
+          className="max-h-[190px] w-full object-contain object-bottom"
+        />
       </div>
-      <div className="space-y-3">
-        <div>
-          <label className="text-xs font-bold text-obra-text-dim">{tr("Correo")}</label>
-          <input
-            type="email"
-            defaultValue="carlos@henares.es"
-            className="w-full rounded-xl border border-obra-line bg-white p-3 text-sm"
-          />
+      <div className="rounded-[32px] border border-white/18 bg-[#60675d]/92 p-5 backdrop-blur-xl shadow-[0_18px_40px_rgba(0,0,0,0.3)]">
+        <div className="text-center mb-4">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-obra-yellow font-bold">
+            <Logo size={24} />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Welcome</h1>
+          <p className="text-xs text-white/75 mt-1">{tr("Inicia sesión para fichar, apuntar gastos y subir facturas")}</p>
         </div>
-        <div>
-          <label className="text-xs font-bold text-obra-text-dim">{tr("Contraseña")}</label>
-          <input
-            type="password"
-            defaultValue="••••••••"
-            className="w-full rounded-xl border border-obra-line bg-white p-3 text-sm"
-          />
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-bold text-obra-text-dim">{tr("Correo")}</label>
+            <input
+              type="email"
+              defaultValue="demo@obrasl.com"
+              className="mt-1 w-full rounded-xl border border-white/16 bg-[#4b544d]/85 p-3 text-sm text-white"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-obra-text-dim">{tr("Contraseña")}</label>
+            <input
+              type="password"
+              defaultValue="••••••••"
+              className="mt-1 w-full rounded-xl border border-white/16 bg-[#4b544d]/85 p-3 text-sm text-white"
+            />
+          </div>
+          <PrimaryButton>{tr("Entrar")}</PrimaryButton>
+          <GhostButton>{tr("Crear cuenta")}</GhostButton>
         </div>
-        <PrimaryButton>{tr("Entrar")}</PrimaryButton>
-      </div>
-      <div className="mt-6 text-center text-xs text-obra-text-faint">
-        <span className="font-semibold text-obra-accent-ink">{tr("Tengo un código de invitación")}</span>
       </div>
     </div>
   );
@@ -241,12 +249,12 @@ function GaleriaAltaMock() {
         <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-obra-yellow text-obra-yellow-ink font-bold">
           <Logo size={26} />
         </div>
-        <h1 className="font-display text-2xl font-bold uppercase">{tr("Crear mi empresa")}</h1>
+        <h1 className="font-display text-2xl font-bold uppercase text-white">{tr("Crear mi empresa")}</h1>
         <p className="text-xs text-obra-text-faint mt-0.5">{tr("Cada código sirve una sola vez y crea una empresa nueva con 14 días de prueba. Se copia solo al crearlo.")}</p>
       </div>
-      <div className="rounded-2xl border border-obra-card-border bg-white p-5 shadow-xs mb-4">
+      <div className="rounded-2xl border border-white/16 bg-[#5a655d]/90 p-5 shadow-md mb-4">
         <div className="text-xs font-bold uppercase text-obra-text-dim tracking-wider">{tr("La empresa")}</div>
-        <div className="font-mono-obra text-3xl font-bold mt-1 text-obra-text">49,00 € <span className="text-xs text-obra-text-faint font-normal">{tr("+1 mes")}</span></div>
+        <div className="font-mono-obra text-3xl font-bold mt-1 text-white">49,00 € <span className="text-xs text-obra-text-faint font-normal">{tr("+1 mes")}</span></div>
         <ul className="mt-3 space-y-1.5 text-xs text-obra-text-dim">
           <li>✓ {tr("Todas las obras")}</li>
           <li>✓ {tr("Fichajes")}</li>
@@ -261,53 +269,60 @@ function GaleriaAltaMock() {
 function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
   return (
     <div className="p-4 space-y-3.5">
-      <div className="flex items-center justify-between pb-2 border-b border-obra-line">
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-obra-green" />
-          <span className="font-bold text-sm truncate max-w-[220px]">{OBRA_FIXTURE.nombre}</span>
+      <div className="flex items-center justify-between pb-1">
+        <div className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/avatar-alex.png" alt="Alex" className="h-9 w-9 rounded-xl border border-white/20 object-cover" />
+          <div>
+            <div className="font-bold text-sm text-white leading-tight">Morning Alex</div>
+            <div className="text-[11px] text-white/75 truncate max-w-[180px]">{OBRA_FIXTURE.nombre}</div>
+          </div>
         </div>
-        <span className="font-mono text-xs bg-obra-card border border-obra-card-border px-2 py-1 rounded-lg">📅</span>
+        <span className="font-mono text-xs bg-[#68746a]/85 border border-white/18 px-2.5 py-1.5 rounded-xl">🔔</span>
       </div>
 
-      <HeroStatCard
-        label={tr("Progreso de la obra")}
-        value={estado === "empty" ? "0%" : "64,25%"}
-        sub={estado === "empty" ? tr("Todavía no hay tareas") : "85.706,00 €"}
-        chart={<BarrasProgreso valores={estado === "empty" ? [0, 0] : [2, 5, 8, 12, 10, 14, 16, 20, 22, 18, 25, 24]} />}
-      />
+      <div className="relative -mx-2 overflow-hidden">
+        <div className="absolute right-2 top-2 z-10 rounded-xl border border-white/18 bg-[#556058]/90 px-2.5 py-1 text-[11px] font-semibold text-white">
+          ● On Track
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/hero-construction.png" alt="Obra" className="mx-auto h-[170px] w-full object-contain object-bottom" />
+      </div>
+
+      <div className="relative z-10 -mt-5 rounded-[26px] border border-white/18 bg-[#68746a]/92 p-4 backdrop-blur-xl shadow-lg">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="font-bold text-base text-white">{OBRA_FIXTURE.nombre}</div>
+            <div className="text-xs text-white/75">{estado === "empty" ? tr("Todavía no hay tareas") : "85.706,00 €"}</div>
+          </div>
+          <span className="font-mono-obra font-bold text-lg text-[#d7dc9a]">
+            {estado === "empty" ? "0%" : "64%"}
+          </span>
+        </div>
+        <BarrasProgreso
+          valores={estado === "empty" ? [0, 0] : [6, 9, 8, 7, 10, 9, 8, 10, 6, 3, 3, 3, 8, 9, 7]}
+          porcentaje={estado === "empty" ? 0 : 64}
+          className="mt-2 h-[78px]"
+        />
+      </div>
 
       <Card className="p-4">
         <div className="text-xs font-bold uppercase text-obra-text-dim tracking-wider mb-2">
           {tr("Dinero de la obra")}
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="bg-obra-bg p-2 rounded-xl border border-obra-card-border">
+          <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
             <div className="text-[10.5px] uppercase font-bold text-obra-text-dim">{tr("Cobrado")}</div>
             <div className="font-mono-obra font-bold text-sm text-obra-green">{estado === "empty" ? "0 €" : "54.000 €"}</div>
           </div>
-          <div className="bg-obra-bg p-2 rounded-xl border border-obra-card-border">
+          <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
             <div className="text-[10.5px] uppercase font-bold text-obra-text-dim">{tr("Gastado")}</div>
-            <div className="font-mono-obra font-bold text-sm">{estado === "empty" ? "0 €" : "31.420 €"}</div>
+            <div className="font-mono-obra font-bold text-sm text-white">{estado === "empty" ? "0 €" : "31.420 €"}</div>
           </div>
-          <div className="bg-obra-bg p-2 rounded-xl border border-obra-card-border">
+          <div className="bg-[#4e5750] p-2 rounded-xl border border-white/12">
             <div className="text-[10.5px] uppercase font-bold text-obra-text-dim">{tr("Balance")}</div>
-            <div className="font-mono-obra font-bold text-sm text-obra-text">{estado === "empty" ? "0 €" : "+22.580 €"}</div>
+            <div className="font-mono-obra font-bold text-sm text-[#d7dc9a]">{estado === "empty" ? "0 €" : "+22.580 €"}</div>
           </div>
-        </div>
-      </Card>
-
-      <Card className="p-4">
-        <div className="flex items-center justify-between text-xs font-bold uppercase text-obra-text-dim mb-2">
-          <span>{tr("Fichado ahora:")}</span>
-          <span className="text-obra-green font-bold">4</span>
-        </div>
-        <div className="space-y-1.5 text-xs">
-          {TRABAJADORES_FIXTURE.slice(0, 3).map((t) => (
-            <div key={t.id} className="flex justify-between items-center p-2 rounded-lg bg-obra-bg border border-obra-card-border">
-              <span className="font-semibold">{t.nombre}</span>
-              <span className="font-mono text-obra-green font-bold">08:00 →</span>
-            </div>
-          ))}
         </div>
       </Card>
     </div>

@@ -13,7 +13,7 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 }
 
 const fieldClass =
-  "w-full rounded-[10px] border border-obra-line bg-obra-bg-elevated px-3 py-3 text-[15px] text-obra-text outline-none focus:border-obra-yellow-dim";
+  "w-full rounded-[14px] border border-white/16 bg-[#4b544d]/85 px-3.5 py-3 text-[15px] text-white placeholder:text-white/45 outline-none transition-colors focus:border-obra-yellow";
 
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={clsx(fieldClass, className)} {...rest} />;

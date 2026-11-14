@@ -181,176 +181,202 @@ function LoginPageInterior() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] max-w-sm flex-col justify-center px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(2.5rem+env(safe-area-inset-top))]">
-      {/* En la app instalada no hay barra del navegador: sin esto no se puede
-          volver a la pantalla de inicio. */}
-      <Link
-        href="/"
-        className="absolute left-4 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-obra-card-border bg-obra-card text-obra-text-dim"
-        aria-label={tr("Volver")}
-      >
-        <ArrowLeft size={18} />
-      </Link>
-      <SelectorIdioma className="absolute right-4 top-5" />
-
-      <div className="mb-8 flex flex-col items-center gap-3">
-        <Logo size={48} className="text-obra-text" />
-        <div className="font-display text-2xl font-extrabold uppercase tracking-wide text-obra-text">
-          {tr("Control de Obra")}
-        </div>
+    <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col justify-between px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
+      {/* Barra superior con botón volver y selector de idioma */}
+      <div className="relative z-10 flex items-center justify-between">
+        <Link
+          href="/"
+          className="flex h-10 w-10 items-center justify-center rounded-[14px] border border-white/18 bg-[#5a655d]/85 text-white backdrop-blur-md transition hover:bg-[#5a655d]"
+          aria-label={tr("Volver")}
+        >
+          <ArrowLeft size={18} />
+        </Link>
+        <SelectorIdioma />
       </div>
 
-      <form onSubmit={submit}>
-        <Field label={tr("Email")}>
-          <Input
-            type="email"
-            required
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={tr("tú@ejemplo.com")}
-          />
-        </Field>
+      {/* Render 3D de la villa moderna iluminada (Screen 1 Dribbble) */}
+      <div className="relative -mx-4 my-2 flex items-center justify-center overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero-villa.png"
+          alt="Control de Obra Villa"
+          className="max-h-[220px] w-full object-contain object-bottom select-none"
+        />
+      </div>
 
-        {modo === "signup" && (
-          <>
-            <Field label={tr("Nombre")}>
-              <Input required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={tr("Ej. Ana")} />
-            </Field>
-            <Field label={tr("Apellidos")}>
-              <Input required value={apellidos} onChange={(e) => setApellidos(e.target.value)} placeholder={tr("Ej. Pérez López")} />
-            </Field>
-          </>
-        )}
+      {/* Tarjeta principal de vidrio esmerilado oliva con resplandor cálido */}
+      <div className="relative overflow-hidden rounded-[36px] border border-white/18 bg-[#60675d]/92 p-6 backdrop-blur-xl shadow-[0_20px_50px_rgba(12,16,13,0.38)]">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(85% 50% at 50% 0%, rgba(238,195,142,0.26) 0%, rgba(215,220,154,0.08) 45%, transparent 72%)",
+          }}
+        />
 
-        {modo !== "recuperar" && (
-          <Field label={tr("Contraseña")}>
+        <div className="relative mb-5 text-center">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/18 bg-white/10 text-[#d7dc9a]">
+            <Logo size={24} />
+          </div>
+          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">
+            Welcome
+          </h1>
+          <div className="mt-1 text-[13px] text-white/75">
+            {tr("Control de Obra")}
+          </div>
+        </div>
+
+        <form onSubmit={submit} className="relative">
+          <Field label={tr("Email")}>
             <Input
-              id={ID_PASSWORD}
-              type="password"
+              type="email"
               required
-              minLength={6}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error) setError("");
-              }}
-              placeholder="••••••••"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={tr("tú@ejemplo.com")}
             />
           </Field>
-        )}
 
-        {modo === "signup" && (
-          <>
-            <Field label={tr("Código")}>
+          {modo === "signup" && (
+            <>
+              <Field label={tr("Nombre")}>
+                <Input required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={tr("Ej. Ana")} />
+              </Field>
+              <Field label={tr("Apellidos")}>
+                <Input required value={apellidos} onChange={(e) => setApellidos(e.target.value)} placeholder={tr("Ej. Pérez López")} />
+              </Field>
+            </>
+          )}
+
+          {modo !== "recuperar" && (
+            <Field label={tr("Contraseña")}>
               <Input
+                id={ID_PASSWORD}
+                type="password"
                 required
-                autoCapitalize="characters"
-                autoComplete="off"
-                value={codigo}
-                onChange={(e) => setCodigo(e.target.value)}
-                placeholder={tr("El código que te ha dado tu empresa")}
+                minLength={6}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError("");
+                }}
+                placeholder="••••••••"
               />
             </Field>
-            {codigoInfo.estado !== "empresa" && codigoInfo.estado !== "alta" && (
-              <Link href="/alta" className="-mt-2 mb-3.5 block text-[13px] font-semibold text-obra-yellow">
-                {tr("¿Tu empresa aún no tiene código? Consíguelo aquí")}
-              </Link>
-            )}
-            {codigoInfo.estado === "comprobando" && (
-              <div className="-mt-2 mb-3.5 text-[13px] text-obra-text-faint">{tr("Comprobando el código…")}</div>
-            )}
-            {codigoInfo.estado === "invalido" && (
-              <div className="-mt-2 mb-3.5 rounded-xl bg-obra-red-bg px-3.5 py-3 text-[14px] font-semibold text-obra-red-text">
-                {tr("Ese código no vale (o ya se usó). Pídelo de nuevo.")}
-              </div>
-            )}
-            {codigoInfo.estado === "empresa" && (
-              <div className="-mt-2 mb-3.5 rounded-xl bg-obra-yellow/12 px-3.5 py-3 text-[14px] font-semibold text-obra-text">
-                {tr("Te unes a la empresa «{empresa}». Su responsable tendrá que aprobarte.", { empresa: codigoInfo.nombre })}
-              </div>
-            )}
-            {codigoInfo.estado === "alta" && (
-              <>
-                <div className="-mt-2 mb-3.5 rounded-xl bg-obra-yellow/12 px-3.5 py-3 text-[14px] font-semibold text-obra-text">
-                  {tr("Código válido: vas a crear tu propia empresa (14 días de prueba).")}
+          )}
+
+          {modo === "signup" && (
+            <>
+              <Field label={tr("Código")}>
+                <Input
+                  required
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value)}
+                  placeholder={tr("El código que te ha dado tu empresa")}
+                />
+              </Field>
+              {codigoInfo.estado !== "empresa" && codigoInfo.estado !== "alta" && (
+                <Link href="/alta" className="-mt-2 mb-3.5 block text-[13px] font-semibold text-obra-yellow">
+                  {tr("¿Tu empresa aún no tiene código? Consíguelo aquí")}
+                </Link>
+              )}
+              {codigoInfo.estado === "comprobando" && (
+                <div className="-mt-2 mb-3.5 text-[13px] text-obra-text-faint">{tr("Comprobando el código…")}</div>
+              )}
+              {codigoInfo.estado === "invalido" && (
+                <div className="-mt-2 mb-3.5 rounded-xl bg-obra-red-bg px-3.5 py-3 text-[14px] font-semibold text-obra-red-text">
+                  {tr("Ese código no vale (o ya se usó). Pídelo de nuevo.")}
                 </div>
-                <Field label={tr("Nombre de tu empresa")}>
-                  <Input
-                    required
-                    value={nombreEmpresa}
-                    onChange={(e) => setNombreEmpresa(e.target.value)}
-                    placeholder={tr("Ej. Reformas Pérez")}
-                  />
-                </Field>
-              </>
-            )}
-          </>
-        )}
+              )}
+              {codigoInfo.estado === "empresa" && (
+                <div className="-mt-2 mb-3.5 rounded-xl bg-obra-yellow/15 px-3.5 py-3 text-[14px] font-semibold text-white">
+                  {tr("Te unes a la empresa «{empresa}». Su responsable tendrá que aprobarte.", { empresa: codigoInfo.nombre })}
+                </div>
+              )}
+              {codigoInfo.estado === "alta" && (
+                <>
+                  <div className="-mt-2 mb-3.5 rounded-xl bg-obra-yellow/15 px-3.5 py-3 text-[14px] font-semibold text-white">
+                    {tr("Código válido: vas a crear tu propia empresa (14 días de prueba).")}
+                  </div>
+                  <Field label={tr("Nombre de tu empresa")}>
+                    <Input
+                      required
+                      value={nombreEmpresa}
+                      onChange={(e) => setNombreEmpresa(e.target.value)}
+                      placeholder={tr("Ej. Reformas Pérez")}
+                    />
+                  </Field>
+                </>
+              )}
+            </>
+          )}
 
-        {/* Bien visible: con el teclado del iPhone abierto, un aviso pequeño
-            en gris pasaba desapercibido y parecía que no hacía nada. */}
-        {error && (
-          <div className="mb-3.5 rounded-xl bg-obra-red-bg px-3.5 py-3 text-[14px] font-semibold text-obra-red-text">
-            {error}
-            {error.startsWith("Contraseña incorrecta") && (
-              <div className="mt-0.5 text-[12px] font-normal">
-                {tr("Si sigue fallando, revisa que el email esté bien escrito.")}
-              </div>
-            )}
-          </div>
-        )}
-        {aviso && <div className="mb-3.5 text-sm text-obra-green">{aviso}</div>}
+          {error && (
+            <div className="mb-3.5 rounded-xl bg-obra-red-bg px-3.5 py-3 text-[14px] font-semibold text-obra-red-text">
+              {error}
+              {error.startsWith("Contraseña incorrecta") && (
+                <div className="mt-0.5 text-[12px] font-normal">
+                  {tr("Si sigue fallando, revisa que el email esté bien escrito.")}
+                </div>
+              )}
+            </div>
+          )}
+          {aviso && <div className="mb-3.5 text-sm text-obra-green">{aviso}</div>}
 
-        <PrimaryButton
-          type="submit"
-          disabled={
-            cargando ||
-            (modo === "signup" && codigoInfo.estado !== "empresa" && codigoInfo.estado !== "alta")
-          }
-        >
-          {cargando && <Loader2 size={16} className="animate-spin" />}
-          {modo === "login" ? tr("Entrar") : modo === "signup" ? tr("Crear cuenta") : tr("Enviar enlace")}
-        </PrimaryButton>
-      </form>
+          <PrimaryButton
+            type="submit"
+            disabled={
+              cargando ||
+              (modo === "signup" && codigoInfo.estado !== "empresa" && codigoInfo.estado !== "alta")
+            }
+          >
+            {cargando && <Loader2 size={16} className="animate-spin" />}
+            {modo === "login" ? tr("Entrar") : modo === "signup" ? tr("Crear cuenta") : tr("Enviar enlace")}
+          </PrimaryButton>
+        </form>
 
-      <div className="mt-5 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 p-4 text-center backdrop-blur-sm">
-        <div className="text-[12px] font-bold uppercase tracking-wider text-emerald-400">
-          {tr("Acceso de prueba")}
-        </div>
-        <p className="mt-1 text-[13px] text-[#A3B1A7]">
-          {tr("Prueba todas las funciones en 1 clic sin escribir contraseñas:")}
-        </p>
         <button
-          type="button"
-          onClick={iniciarComoDemo}
-          disabled={cargando}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4E565] px-4 py-3 font-semibold text-[#141A16] shadow-md transition hover:bg-[#c2d54e] active:scale-[0.98]"
+          onClick={() => cambiarModo(modo === "login" ? "signup" : "login")}
+          className="relative mt-2.5 flex min-h-[48px] w-full items-center justify-center rounded-[16px] bg-[#0e0c0d] px-4 py-3 text-[15px] font-bold text-white shadow-[0_6px_18px_rgba(0,0,0,0.28)] transition hover:bg-black/85 active:scale-[0.99]"
         >
-          {cargando ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-          <span>{tr("Entrar como Dueño (Demo 1-Clic)")}</span>
+          {modo === "login"
+            ? tr("¿No tienes cuenta? Créala")
+            : modo === "signup"
+              ? tr("¿Ya tienes cuenta? Inicia sesión")
+              : tr("Volver a iniciar sesión")}
         </button>
-        <div className="mt-2.5 text-[11px] text-[#718276]">
-          {tr("Email")}: <span className="font-mono text-[#D4E565]">demo@obrasl.com</span> · {tr("Contraseña")}: <span className="font-mono text-[#D4E565]">ObraDemo2026!</span> · {tr("Código")}: <span className="font-mono text-[#D4E565]">OBRA2026</span>
+
+        {modo === "login" && (
+          <button
+            onClick={() => cambiarModo("recuperar")}
+            className="relative mt-3 block w-full text-center text-xs font-semibold text-white/75 hover:text-white"
+          >
+            {tr("¿Olvidaste tu contraseña?")}
+          </button>
+        )}
+
+        {/* Acceso rápido de demostración en 1 clic */}
+        <div className="relative mt-4 rounded-2xl border border-white/14 bg-[#4e5750]/85 p-3.5 text-center">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[#d7dc9a]">
+            {tr("Acceso de prueba")}
+          </div>
+          <button
+            type="button"
+            onClick={iniciarComoDemo}
+            disabled={cargando}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] border border-[#d7dc9a]/40 bg-[#d7dc9a]/18 px-3.5 py-2.5 text-[13.5px] font-bold text-[#d7dc9a] transition hover:bg-[#d7dc9a]/25 active:scale-[0.98]"
+          >
+            {cargando ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+            <span>{tr("Entrar como Dueño (Demo 1-Clic)")}</span>
+          </button>
+          <div className="mt-2 text-[10.5px] text-white/70">
+            <span className="font-mono text-[#d7dc9a]">demo@obrasl.com</span> · <span className="font-mono text-[#d7dc9a]">ObraDemo2026!</span> · <span className="font-mono text-[#d7dc9a]">OBRA2026</span>
+          </div>
         </div>
       </div>
-
-      {modo === "login" && (
-        <button onClick={() => cambiarModo("recuperar")} className="mt-4 text-center text-sm font-semibold text-obra-yellow">
-          {tr("¿Olvidaste tu contraseña?")}
-        </button>
-      )}
-
-      <button
-        onClick={() => cambiarModo(modo === "login" ? "signup" : "login")}
-        className="mt-3 text-center text-sm font-semibold text-obra-text-dim"
-      >
-        {modo === "login"
-          ? tr("¿No tienes cuenta? Créala")
-          : modo === "signup"
-            ? tr("¿Ya tienes cuenta? Inicia sesión")
-            : tr("Volver a iniciar sesión")}
-      </button>
     </div>
   );
 }

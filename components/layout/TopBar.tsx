@@ -2,59 +2,77 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, ChevronDown, CircleDot } from "lucide-react";
+import { Bell, Calendar, ChevronDown } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
 import { Sheet } from "@/components/ui/Sheet";
-import { Logo } from "@/components/ui/Logo";
 import { ObraPicker } from "./ObraPicker";
 import { tr } from "@/lib/i18n";
 
 export function TopBar() {
   const { obraActual, obras } = useObra();
-  const { gestiona } = useMiembro();
+  const { miembro, gestiona } = useMiembro();
   const [picking, setPicking] = useState(false);
 
   if (obras.length === 0) return null;
 
+  const nombreSaludo = miembro?.nombre?.trim() || "Alex";
+
   return (
     <>
-      {/* El relleno de arriba deja sitio a la barra de estado del iPhone:
-          sin él, el nombre de la obra quedaba tapado con la app instalada. */}
-      <div className="sticky top-0 z-10 border-b border-obra-line bg-obra-bg px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] md:px-6">
-        <div className="mx-auto flex max-w-3xl items-center gap-2.5">
-          {/* El emblema lleva siempre a Inicio, desde cualquier pantalla. */}
-          <Link
-            href="/"
-            aria-label={tr("Ir a inicio")}
-            className="flex h-10 w-10 shrink-0 items-center justify-center text-obra-text md:hidden"
-          >
-            <Logo size={26} />
-          </Link>
-          <button
-            onClick={() => setPicking(true)}
-            className="flex flex-1 items-center justify-between gap-2 rounded-[10px] border border-obra-card-border bg-obra-card px-3 py-2.5"
-          >
-            <div className="flex items-center gap-2 overflow-hidden">
-              <CircleDot
-                size={14}
-                className={obraActual?.activa === false ? "text-obra-text-faint" : "text-obra-green"}
-              />
-              <span className="truncate text-[14.5px] font-semibold text-obra-text">
-                {obraActual ? obraActual.nombre : tr("Elegir obra")}
-              </span>
-            </div>
-            <ChevronDown size={16} className="text-obra-text-dim" />
-          </button>
-          {gestiona && (
+      {/* Cabecera estilo Dribbble: avatar táctico a la izquierda, saludo + selector
+          de obra en el centro y botón cuadrado de cristal esmerilado a la derecha. */}
+      <div className="sticky top-0 z-10 bg-obra-bg/90 px-4 pb-2.5 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md md:px-6">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link
-              href="/resumen"
-              aria-label={tr("Resumen mensual")}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-obra-card-border bg-obra-card text-obra-text transition-colors hover:border-obra-text-faint"
+              href="/"
+              aria-label={tr("Ir a inicio")}
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-white/20 bg-[#4b544d] shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
             >
-              <Calendar size={17} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/avatar-alex.png"
+                alt={nombreSaludo}
+                className="h-full w-full object-cover"
+              />
             </Link>
-          )}
+
+            <button
+              onClick={() => setPicking(true)}
+              className="group flex min-w-0 flex-1 flex-col items-start text-left"
+            >
+              <span className="truncate text-[16px] font-bold leading-tight text-white">
+                Morning {nombreSaludo}
+              </span>
+              <span className="mt-0.5 flex max-w-full items-center gap-1 text-[12.5px] font-medium text-white/75 group-hover:text-white">
+                <span className="truncate">
+                  {obraActual ? obraActual.nombre : tr("Elegir obra")}
+                </span>
+                <ChevronDown size={13} className="shrink-0 opacity-80" />
+              </span>
+            </button>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            {gestiona && (
+              <Link
+                href="/resumen"
+                aria-label={tr("Resumen mensual")}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-white/18 bg-[#68746a]/85 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+              >
+                <Calendar size={17} />
+              </Link>
+            )}
+            <Link
+              href="/notas"
+              aria-label={tr("Notas")}
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-white/18 bg-[#68746a]/85 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            >
+              <Bell size={17} />
+              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-[#e0826d]" />
+            </Link>
+          </div>
         </div>
       </div>
 
