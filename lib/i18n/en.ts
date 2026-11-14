@@ -631,4 +631,8 @@ export const en: Record<string, string> = {
   "Tengo un código de invitación": "I have an invite code",
   "Todas las obras": "All sites",
   "Todavía no hay tareas": "No tasks yet",
+  "Acceso de prueba": "Test access",
+  "Entrar a la app (Demo en 1 Clic)": "Enter app (1-Click Demo)",
+  "Entrar como Dueño (Demo 1-Clic)": "Log in as Owner (1-Click Demo)",
+  "Prueba todas las funciones en 1 clic sin escribir contraseñas:": "Test all features in 1 click without typing passwords:",
 };

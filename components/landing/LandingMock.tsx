@@ -69,6 +69,12 @@ export function LandingMock() {
             <Sparkline values={[3, 5, 4, 7, 6, 8, 9]} className="h-full w-full" />
           </div>
         </div>
+        <Link
+          href="/login?demo=1"
+          className="relative mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#D4E565] px-4 py-2.5 text-center text-sm font-bold text-[#141A16] shadow-md transition hover:bg-[#c2d54e] active:scale-[0.98]"
+        >
+          <span>{tr("Entrar a la app (Demo en 1 Clic)")}</span>
+        </Link>
       </div>
 
       {/* Ocupa el espacio que sobre: se encoge en pantallas pequeñas */}

@@ -639,4 +639,8 @@ export const uk: Record<string, string> = {
   "Tengo un código de invitación": "У мене є код запрошення",
   "Todas las obras": "Усі об'єкти",
   "Todavía no hay tareas": "Завдань ще немає",
+  "Acceso de prueba": "Тестовий доступ",
+  "Entrar a la app (Demo en 1 Clic)": "Увійти в додаток (Демо в 1 клік)",
+  "Entrar como Dueño (Demo 1-Clic)": "Увійти як Власник (Демо 1-клік)",
+  "Prueba todas las funciones en 1 clic sin escribir contraseñas:": "Спробуйте всі функції в 1 клік без введення пароля:",
 };

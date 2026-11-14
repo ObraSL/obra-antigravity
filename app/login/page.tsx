@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Field, Input } from "@/components/ui/Field";
 import { PrimaryButton } from "@/components/ui/Button";
@@ -84,6 +84,30 @@ function LoginPageInterior() {
       enfocarPassword();
     }
   }, []);
+
+  const iniciarComoDemo = useCallback(async () => {
+    setError("");
+    setAviso("");
+    setCargando(true);
+    const { error: err } = await supabase.auth.signInWithPassword({
+      email: "demo@obrasl.com",
+      password: "ObraDemo2026!",
+    });
+    if (err) {
+      setError(err.message);
+      setCargando(false);
+      return;
+    }
+    localStorage.setItem(EMAIL_RECORDADO, "demo@obrasl.com");
+    router.push("/");
+    router.refresh();
+  }, [supabase, router]);
+
+  useEffect(() => {
+    if (params.get("demo") === "1") {
+      iniciarComoDemo();
+    }
+  }, [params, iniciarComoDemo]);
 
   const cambiarModo = (m: typeof modo) => {
     setModo(m);
@@ -289,6 +313,27 @@ function LoginPageInterior() {
           {modo === "login" ? tr("Entrar") : modo === "signup" ? tr("Crear cuenta") : tr("Enviar enlace")}
         </PrimaryButton>
       </form>
+
+      <div className="mt-5 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 p-4 text-center backdrop-blur-sm">
+        <div className="text-[12px] font-bold uppercase tracking-wider text-emerald-400">
+          {tr("Acceso de prueba")}
+        </div>
+        <p className="mt-1 text-[13px] text-[#A3B1A7]">
+          {tr("Prueba todas las funciones en 1 clic sin escribir contraseñas:")}
+        </p>
+        <button
+          type="button"
+          onClick={iniciarComoDemo}
+          disabled={cargando}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D4E565] px-4 py-3 font-semibold text-[#141A16] shadow-md transition hover:bg-[#c2d54e] active:scale-[0.98]"
+        >
+          {cargando ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+          <span>{tr("Entrar como Dueño (Demo 1-Clic)")}</span>
+        </button>
+        <div className="mt-2.5 text-[11px] text-[#718276]">
+          {tr("Email")}: <span className="font-mono text-[#D4E565]">demo@obrasl.com</span> · {tr("Contraseña")}: <span className="font-mono text-[#D4E565]">ObraDemo2026!</span> · {tr("Código")}: <span className="font-mono text-[#D4E565]">OBRA2026</span>
+        </div>
+      </div>
 
       {modo === "login" && (
         <button onClick={() => cambiarModo("recuperar")} className="mt-4 text-center text-sm font-semibold text-obra-yellow">
