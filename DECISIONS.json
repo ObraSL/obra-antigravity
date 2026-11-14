@@ -64,6 +64,10 @@
     "infrastructure": {
       "test_supabase_project_id": "mxprbqfvdxalzcynweph",
       "test_supabase_url": "https://mxprbqfvdxalzcynweph.supabase.co",
+      "db_schema_status": "DEPLOYED_VERIFIED",
+      "tables_count": 20,
+      "rpc_count": 29,
+      "storage_buckets": ["facturas", "notas"],
       "status": "FROZEN_APPROVED"
     }
   }
