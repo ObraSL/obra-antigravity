@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import clsx from "clsx";
 import { CalendarRange, FileSpreadsheet, Plus } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +14,7 @@ import { Empty } from "@/components/ui/Empty";
 import { Gantt } from "@/components/planificacion/Gantt";
 import { ImportarExcel } from "@/components/planificacion/ImportarExcel";
 import { TareaForm, type DatosTarea } from "@/components/planificacion/TareaForm";
+import { FotoEdificio } from "@/components/ui/FotoEdificio";
 import { tr, trJsx, trN } from "@/lib/i18n";
 
 /**
@@ -123,28 +123,15 @@ export default function PlanificacionPage() {
 
   return (
     <div>
-      {/* Render 3D del edificio en construcción con insignia On Track (Screen 3 Dribbble) */}
-      <div className="relative -mx-2 overflow-hidden">
-        <div className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-[14px] border border-white/18 bg-[#556058]/90 px-3.5 py-1.5 text-[12px] font-semibold text-white backdrop-blur-md shadow-[0_8px_20px_rgba(0,0,0,0.22)]">
-          <span
-            className={clsx(
-              "h-2 w-2 rounded-full",
-              retrasadas > 0 ? "bg-[#e0826d]" : "bg-[#d7dc9a]"
-            )}
-          />
-          <span>{retrasadas > 0 ? tr("{n} con retraso", { n: retrasadas }) : "On Track"}</span>
-        </div>
-
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/hero-construction.png"
-          alt={obraActual.nombre}
-          className="mx-auto block h-[195px] w-full max-w-[420px] object-contain object-bottom select-none sm:h-[225px]"
-        />
-      </div>
+      {/* Fotografía atmosférica de la obra con grúa torre (Screen 3 Dribbble) */}
+      <FotoEdificio
+        prioritaria
+        retrasadas={retrasadas}
+        altura="h-[210px] sm:h-[240px]"
+      />
 
       {/* Tarjeta contenedora principal de vidrio esmerilado oliva (Screen 3 Dribbble) */}
-      <div className="relative z-10 -mt-5 overflow-hidden rounded-[30px] border border-white/18 bg-[#68746a]/92 p-5 backdrop-blur-xl shadow-[0_18px_42px_rgba(12,16,13,0.3)]">
+      <div className="relative z-10 -mt-6 overflow-hidden rounded-[30px] border border-white/18 bg-[#68746a]/92 p-5 backdrop-blur-xl shadow-[0_18px_42px_rgba(12,16,13,0.3)]">
         <div
           className="pointer-events-none absolute inset-0"
           style={{

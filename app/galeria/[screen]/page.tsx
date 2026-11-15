@@ -9,6 +9,7 @@ import { Gantt } from "@/components/planificacion/Gantt";
 import { StampButton } from "@/components/ui/StampButton";
 import { BarrasProgreso } from "@/components/ui/BarrasProgreso";
 import { GaugeMeter } from "@/components/ui/GaugeMeter";
+import { FotoEdificio } from "@/components/ui/FotoEdificio";
 import { Card } from "@/components/ui/Card";
 import { PrimaryButton, GhostButton } from "@/components/ui/Button";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
@@ -294,25 +295,12 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
         </span>
       </div>
 
-      <div className="relative -mx-2 overflow-hidden">
-        <div className="absolute right-2 top-2 z-10 rounded-xl border border-white/18 bg-[#556058]/90 px-2.5 py-1 text-[11px] font-medium text-white">
-          ● On Track
-        </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/hero-construction.png"
-          alt="Obra"
-          className="mx-auto h-[170px] w-full object-contain object-bottom"
-          style={{
-            maskImage:
-              "radial-gradient(ellipse 95% 85% at 50% 48%, black 60%, transparent 100%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 95% 85% at 50% 48%, black 60%, transparent 100%)",
-          }}
-        />
-      </div>
+      <FotoEdificio
+        altura="h-[185px] sm:h-[210px]"
+        badgeLabel="● On Track"
+      />
 
-      <div className="relative z-10 -mt-5 rounded-[26px] border border-white/18 bg-[#68746a]/92 p-4 backdrop-blur-xl shadow-lg">
+      <div className="relative z-10 -mt-6 rounded-[26px] border border-white/18 bg-[#68746a]/92 p-4 backdrop-blur-xl shadow-lg">
         <div className="flex justify-between items-start">
           <div>
             <div className="font-semibold text-base tracking-tight text-white">{OBRA_FIXTURE.nombre}</div>
