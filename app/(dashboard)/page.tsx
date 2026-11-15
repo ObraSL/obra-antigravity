@@ -166,6 +166,12 @@ function InicioGestor() {
           src="/hero-construction.png"
           alt={obraActual.nombre}
           className="mx-auto block h-[220px] w-full max-w-[420px] object-contain object-bottom select-none sm:h-[250px]"
+          style={{
+            maskImage:
+              "radial-gradient(ellipse 95% 85% at 50% 48%, black 60%, transparent 100%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 95% 85% at 50% 48%, black 60%, transparent 100%)",
+          }}
         />
       </div>
 

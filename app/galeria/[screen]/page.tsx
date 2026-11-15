@@ -299,7 +299,17 @@ function GaleriaHomeDuenoMock({ estado }: { estado: string }) {
           ● On Track
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/hero-construction.png" alt="Obra" className="mx-auto h-[170px] w-full object-contain object-bottom" />
+        <img
+          src="/hero-construction.png"
+          alt="Obra"
+          className="mx-auto h-[170px] w-full object-contain object-bottom"
+          style={{
+            maskImage:
+              "radial-gradient(ellipse 95% 85% at 50% 48%, black 60%, transparent 100%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 95% 85% at 50% 48%, black 60%, transparent 100%)",
+          }}
+        />
       </div>
 
       <div className="relative z-10 -mt-5 rounded-[26px] border border-white/18 bg-[#68746a]/92 p-4 backdrop-blur-xl shadow-lg">

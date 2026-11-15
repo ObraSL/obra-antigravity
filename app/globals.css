@@ -19,10 +19,10 @@
   --color-obra-slate-card: #58635b;
   --color-obra-slate-border: rgba(255, 255, 255, 0.16);
 
-  /* Tipografía blanca y gris salvia de alto contraste */
+  /* Tipografía blanca y caliza cálida de alto contraste (AAA > 5.5:1) */
   --color-obra-text: #ffffff;
-  --color-obra-text-dim: #e2e8e2;
-  --color-obra-text-faint: #c4cfc5;
+  --color-obra-text-dim: #f3f6f2;
+  --color-obra-text-faint: #d8e2d7;
 
   /* Señal e interacción principal: Pistachio-Lime (#D7DC9A) */
   --color-obra-yellow: #d7dc9a;
@@ -42,9 +42,9 @@
   --color-obra-nav-bg: #646f67;
   --color-obra-nav-border: rgba(255, 255, 255, 0.18);
 
-  /* Familias tipográficas */
-  --font-display: var(--font-barlow-condensed), sans-serif;
-  --font-body: var(--font-inter), sans-serif;
+  /* Familias tipográficas modernas (Geist Vercel) */
+  --font-display: var(--font-geist), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: var(--font-geist), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono-obra: var(--font-jetbrains-mono), monospace;
 }
 

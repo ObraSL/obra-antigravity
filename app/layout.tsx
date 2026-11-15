@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, Inter, JetBrains_Mono } from "next/font/google";
+import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cookies, headers } from "next/headers";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
@@ -7,16 +7,10 @@ import { COOKIE_IDIOMA, esIdioma, idiomaDesde } from "@/lib/i18n";
 import { IdiomaProvider } from "@/lib/i18n/provider";
 import type { ReactNode } from "react";
 
-const barlowCondensed = Barlow_Condensed({
-  variable: "--font-barlow-condensed",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -44,7 +38,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f2f4f0",
+  themeColor: "#737f73",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -61,7 +55,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html
       lang={idioma}
-      className={`${barlowCondensed.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${geist.variable} ${jetbrainsMono.variable} font-sans h-full antialiased`}
     >
       <body className="min-h-full bg-obra-bg text-obra-text">
         <ServiceWorkerRegister />
