@@ -16,6 +16,9 @@ export function IdiomaProvider({ inicial, children }: { inicial: Idioma; childre
 
   useEffect(() => {
     document.documentElement.lang = idioma;
+    if (!document.cookie.includes(COOKIE_IDIOMA)) {
+      document.cookie = `${COOKIE_IDIOMA}=${idioma}; path=/; max-age=31536000; samesite=lax`;
+    }
   }, [idioma]);
 
   const cambiarIdioma = useCallback((i: Idioma) => {

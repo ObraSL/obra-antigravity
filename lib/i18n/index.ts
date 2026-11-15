@@ -16,17 +16,17 @@ import { en } from "./en";
 export type Idioma = "es" | "uk" | "en";
 
 export const IDIOMAS: { id: Idioma; nombre: string; corto: string }[] = [
-  { id: "es", nombre: "Español", corto: "ES" },
   { id: "uk", nombre: "Українська", corto: "UA" },
+  { id: "es", nombre: "Español", corto: "ES" },
   { id: "en", nombre: "English", corto: "EN" },
 ];
 
 export const COOKIE_IDIOMA = "idioma";
 
 const DICCIONARIOS: Record<Exclude<Idioma, "es">, Record<string, string>> = { uk, en };
-const LOCALES: Record<Idioma, string> = { es: "es-ES", uk: "uk-UA", en: "en-GB" };
+const LOCALES: Record<Idioma, string> = { uk: "uk-UA", es: "es-ES", en: "en-GB" };
 
-let actual: Idioma = "es";
+let actual: Idioma = "uk";
 
 export const fijarIdioma = (i: Idioma) => {
   actual = i;
@@ -45,7 +45,7 @@ export function idiomaDesde(preferidos: readonly string[]): Idioma {
     if (base === "es" || base === "ca" || base === "gl" || base === "eu") return "es";
     if (base === "en") return "en";
   }
-  return "es";
+  return "uk";
 }
 
 /** Traduce un texto en español. Admite huecos tipo {nombre}. */

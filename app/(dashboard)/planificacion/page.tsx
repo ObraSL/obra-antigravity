@@ -144,10 +144,10 @@ export default function PlanificacionPage() {
           {/* Título de la obra + porcentaje de avance */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="truncate text-[19px] font-bold leading-snug text-white">
+              <h1 className="truncate text-[17px] font-medium leading-snug tracking-tight text-white">
                 {obraActual.nombre}
               </h1>
-              <div className="mt-0.5 truncate text-[12.5px] text-white/75">
+              <div className="mt-0.5 truncate text-[12.5px] font-normal text-white/75">
                 {obraActual.direccion ||
                   (tareas.length === 0
                     ? tr("Todavía no hay plan")
@@ -157,7 +157,7 @@ export default function PlanificacionPage() {
                       }))}
               </div>
             </div>
-            <div className="shrink-0 rounded-full border border-white/18 bg-white/12 px-3 py-1 font-mono-obra text-[14px] font-bold text-[#d7dc9a]">
+            <div className="shrink-0 rounded-full border border-white/18 bg-white/12 px-3 py-1 font-mono-obra text-[13.5px] font-medium text-[#d7dc9a]">
               {avance}%
             </div>
           </div>
@@ -166,10 +166,10 @@ export default function PlanificacionPage() {
           <div className="mt-4 rounded-[24px] border border-white/12 bg-[#525b53]/95 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="text-[14px] font-bold text-white">
+                <div className="text-[13.5px] font-medium tracking-tight text-white">
                   {presupuestado > 0 ? tr("Presupuestado") : tr("Avance de la obra")}
                 </div>
-                <div className="mt-0.5 font-mono-obra text-[18px] font-bold text-[#d7dc9a]">
+                <div className="mt-0.5 font-mono-obra text-[17px] font-semibold text-[#d7dc9a]">
                   {presupuestado > 0 ? fmtEUR(presupuestado) : `${avance}%`}
                 </div>
               </div>

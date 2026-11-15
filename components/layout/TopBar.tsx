@@ -22,7 +22,10 @@ export function TopBar() {
     <>
       {/* Cabecera estilo Dribbble: avatar táctico a la izquierda, saludo + selector
           de obra en el centro y botón cuadrado de cristal esmerilado a la derecha. */}
-      <div className="sticky top-0 z-10 bg-obra-bg/90 px-4 pb-2.5 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md md:px-6">
+      <div
+        className="sticky top-0 z-10 bg-obra-bg/90 px-4 pb-2.5 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-md md:px-6"
+        style={{ viewTransitionName: "cabecera" }}
+      >
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link
@@ -42,8 +45,8 @@ export function TopBar() {
               onClick={() => setPicking(true)}
               className="group flex min-w-0 flex-1 flex-col items-start text-left"
             >
-              <span className="truncate text-[16px] font-semibold leading-tight tracking-tight text-white">
-                Morning {nombreSaludo}
+              <span className="truncate text-[15px] font-medium leading-tight tracking-tight text-white">
+                {tr("Morning {nombre}", { nombre: nombreSaludo })}
               </span>
               <span className="mt-0.5 flex max-w-full items-center gap-1 text-[12.5px] font-normal text-white/75 group-hover:text-white">
                 <span className="truncate">

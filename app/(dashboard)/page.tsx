@@ -139,14 +139,14 @@ function InicioGestor() {
     <div>
       {/* Cabecera estilo Dribbble Screen 2: Active Projects + See More */}
       <div className="mb-2.5 mt-0.5 flex items-baseline justify-between px-1">
-        <h1 className="text-[17px] font-semibold tracking-tight text-white">
-          Active Projects
+        <h1 className="text-[15px] font-medium tracking-tight text-white/90">
+          {tr("Active Projects")}
         </h1>
         <Link
           href="/planificacion"
           className="text-[12.5px] font-normal text-white/65 transition hover:text-white"
         >
-          See More
+          {tr("See More")}
         </Link>
       </div>
 
@@ -202,8 +202,8 @@ function InicioGestor() {
             {/* Tarjeta derecha: Attendance & Alerts */}
             <div className="flex h-[95px] flex-col justify-between rounded-[20px] border border-white/12 bg-[#121613]/95 p-3.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_4px_16px_rgba(0,0,0,0.25)]">
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-white/90">
-                  Attendance
+                <span className="text-[12.5px] font-normal text-white/85">
+                  {tr("Attendance")}
                 </span>
                 {/* Switch estilo Dribbble con punto rojo/coral activo */}
                 <div className="flex h-4 w-7 items-center rounded-full bg-white/15 p-0.5">
@@ -212,8 +212,8 @@ function InicioGestor() {
               </div>
 
               <div className="flex items-baseline justify-between pt-1">
-                <span className="text-[13px] font-medium text-white/90">
-                  Alerts
+                <span className="text-[12.5px] font-normal text-white/85">
+                  {tr("Alerts")}
                 </span>
                 <span className="font-mono-obra text-[20px] font-bold leading-none text-white">
                   {retrasadas > 0 ? retrasadas : Math.round(horasMes / 60) > 0 ? Math.round(horasMes / 60) : 3}

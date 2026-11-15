@@ -1,5 +1,7 @@
 "use client";
 
+import { ViewTransition } from "react";
+import { usePathname } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
@@ -11,6 +13,7 @@ import { SinObrasAsignadas } from "./SinObrasAsignadas";
 import { PullToRefresh } from "./PullToRefresh";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const { obras, loading } = useObra();
   const { gestiona } = useMiembro();
 
@@ -34,7 +37,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             gestiona ? <SinObras /> : <SinObrasAsignadas />
           ) : (
             <PullToRefresh>
-              <div className="mx-auto max-w-3xl px-4 pb-28 pt-4 md:px-6 md:py-6">{children}</div>
+              <div className="mx-auto max-w-3xl px-4 pb-28 pt-4 md:px-6 md:py-6">
+                <ViewTransition
+                  key={pathname}
+                  enter={{ adelante: "pag-adelante", atras: "pag-atras", default: "pag-fundido" }}
+                  exit={{ adelante: "pag-adelante", atras: "pag-atras", default: "pag-fundido" }}
+                  default="none"
+                >
+                  <div>{children}</div>
+                </ViewTransition>
+              </div>
             </PullToRefresh>
           )}
         </main>

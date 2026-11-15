@@ -92,3 +92,30 @@ export const RUTAS_SOLO_GESTORES = [
   "/planificacion",
   "/dinero",
 ];
+
+/** ¿La ruta está activa? */
+export const rutaActiva = (href: string, pathname: string) =>
+  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+
+/** Orden de lectura de las pantallas para la animación de transición suave */
+const ORDEN_PANTALLAS = [
+  "/",
+  "/planificacion",
+  "/fichajes",
+  "/vehiculos",
+  "/gastos",
+  "/dinero",
+  "/notas",
+  "/resumen",
+  "/ajustes",
+];
+
+const rangoPantalla = (ruta: string) => ORDEN_PANTALLAS.findIndex((r) => rutaActiva(r, ruta));
+
+/** Tipo de transición para ir de `desde` a `hacia` */
+export function tipoSalto(desde: string, hacia: string): ("adelante" | "atras")[] {
+  const a = rangoPantalla(desde);
+  const b = rangoPantalla(hacia);
+  if (a < 0 || b < 0 || a === b) return [];
+  return [b > a ? "adelante" : "atras"];
+}
