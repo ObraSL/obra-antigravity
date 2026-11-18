@@ -16,12 +16,14 @@ import {
   Trash2,
   MoreHorizontal,
   Download,
+  FileText,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import { useObra } from "@/lib/obra-context";
 import { createClient } from "@/lib/supabase/client";
 import type { Fichaje, FichajeHistorial, Gasto, Obra, Trabajador, UsoVehiculo, Vehiculo } from "@/lib/types";
+import { imprimirRegistroJornada } from "@/lib/exportar-pdf-jornada";
 import { suma } from "@/lib/dinero";
 import { CATEGORIAS_GASTO } from "@/lib/types";
 import { currentMonth, fmtDate, fmtEUR, monthBounds, monthLabel, shiftMonth, weekdayShort } from "@/lib/format";
@@ -180,7 +182,14 @@ export default function ResumenPage() {
 
       {detail?.type === "trabajador" && (
         <Sheet title={detail.payload.nombre} onClose={() => setDetail(null)}>
-          <DetalleTrabajadorMes trabajadorId={detail.payload.id} month={month} obras={obras} jornadaHoras={jornadaHoras} />
+          <DetalleTrabajadorMes
+            trabajador={detail.payload}
+            trabajadorId={detail.payload.id}
+            month={month}
+            obras={obras}
+            jornadaHoras={jornadaHoras}
+            obraActualNombre={obraActual?.nombre}
+          />
         </Sheet>
       )}
       {detail?.type === "vehiculo" && (
@@ -260,15 +269,19 @@ function ResumenTrabajadores({
  * estuvo cada día, que es justo lo que hace falta para pagar y controlar.
  */
 function DetalleTrabajadorMes({
+  trabajador,
   trabajadorId,
   month,
   obras,
   jornadaHoras,
+  obraActualNombre,
 }: {
+  trabajador: Trabajador;
   trabajadorId: string;
   month: string;
   obras: Obra[];
   jornadaHoras: number;
+  obraActualNombre?: string;
 }) {
   const supabase = useMemo(() => createClient(), []);
   const [registros, setRegistros] = useState<Fichaje[] | null>(null);
@@ -296,6 +309,25 @@ function DetalleTrabajadorMes({
 
   return (
     <div>
+      {/* Botón de exportación oficial PDF Registro de Jornada */}
+      <button
+        type="button"
+        onClick={() => {
+          imprimirRegistroJornada({
+            empresaNombre: obraActualNombre || "Control de Obra S.L.",
+            obraNombre: nombreObra(registros[0]?.obra_id || ""),
+            trabajador,
+            mes: month,
+            fichajes: registros,
+            jornadaHoras,
+          });
+        }}
+        className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/16 py-2.5 text-[13px] font-bold text-[#d7dc9a] transition hover:bg-[#d7dc9a]/25 active:scale-[0.98]"
+      >
+        <FileText size={15} />
+        <span>{tr("Descargar Registro de Jornada (PDF)")}</span>
+      </button>
+
       <div className="mb-3 rounded-xl border border-obra-card-border bg-obra-card p-3">
         <div className="flex items-center justify-between text-[13px]">
           <span className="text-obra-text-dim">{trN(diasTrabajados, "{n} día", "{n} días")} · {tr("todas las obras")}</span>

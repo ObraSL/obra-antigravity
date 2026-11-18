@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Trash2,
   UserPlus,
+  QrCode,
 } from "lucide-react";
 import clsx from "clsx";
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +21,7 @@ import { ROLES, type Miembro, type Rol, type Trabajador } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { Sheet } from "@/components/ui/Sheet";
 import { GhostButton, PrimaryButton } from "@/components/ui/Button";
+import { ModalQrInvitacion } from "./ModalQrInvitacion";
 import { tr, trJsx } from "@/lib/i18n";
 
 const etiquetaRol = (rol: Rol) => ROLES.find((r) => r.id === rol)?.label ?? rol;
@@ -40,6 +42,7 @@ export function Accesos() {
   const [cargando, setCargando] = useState(true);
   const [abierto, setAbierto] = useState<Miembro | null>(null);
   const [copiado, setCopiado] = useState(false);
+  const [mostrarQr, setMostrarQr] = useState(false);
 
   const cargar = useCallback(async () => {
     const [m, t, e] = await Promise.all([
@@ -123,16 +126,34 @@ export function Accesos() {
           <div className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-obra-text-dim">
             {tr("Enlace para invitar a tu equipo")}
           </div>
-          <div className="mb-2.5 truncate rounded-lg bg-obra-bg px-2.5 py-2 text-[12.5px] text-obra-text-faint">
+          <div className="mb-2.5 truncate rounded-lg bg-obra-bg px-2.5 py-2 text-[12.5px] text-obra-text-faint font-mono">
             {enlaceInvitacion}
           </div>
-          <button
-            onClick={copiarEnlace}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-obra-line py-2.5 text-[13px] font-semibold text-obra-text-dim"
-          >
-            <Copy size={14} /> {copiado ? tr("¡Copiado!") : tr("Copiar enlace")}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMostrarQr(true)}
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/16 py-2.5 text-[13px] font-bold text-[#d7dc9a] transition hover:bg-[#d7dc9a]/25 active:scale-[0.98]"
+            >
+              <QrCode size={15} /> {tr("Mostrar código QR")}
+            </button>
+            <button
+              type="button"
+              onClick={copiarEnlace}
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-obra-line py-2.5 text-[13px] font-semibold text-obra-text-dim transition hover:bg-white/5 active:scale-[0.98]"
+            >
+              <Copy size={14} /> {copiado ? tr("¡Copiado!") : tr("Copiar enlace")}
+            </button>
+          </div>
         </Card>
+      )}
+
+      {mostrarQr && codigoEmpresa && enlaceInvitacion && (
+        <ModalQrInvitacion
+          codigoEmpresa={codigoEmpresa}
+          enlaceInvitacion={enlaceInvitacion}
+          onClose={() => setMostrarQr(false)}
+        />
       )}
 
       {pendientes.length > 0 && (

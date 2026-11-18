@@ -19,6 +19,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { StampButton } from "@/components/ui/StampButton";
 import { ObraPicker } from "@/components/layout/ObraPicker";
 import { TransporteSelector } from "./TransporteSelector";
+import { CalendarioMes } from "./CalendarioMes";
 import { tr, trJsx } from "@/lib/i18n";
 
 /**
@@ -32,14 +33,25 @@ export function MiFichaje() {
 
   const hoy = todayStr();
   const [fecha, setFecha] = useState(hoy);
+  const [mesFiltro, setMesFiltro] = useState(currentMonth());
   const [fichaje, setFichaje] = useState<Fichaje | null>(null);
   const [mes, setMes] = useState({ trabajados: 0, extra: 0 });
+  const [fichajesDelMes, setFichajesDelMes] = useState<{ fecha: string; hora_entrada: string | null; hora_salida: string | null }[]>([]);
   const [cambiandoObra, setCambiandoObra] = useState(false);
   const [editandoTarea, setEditandoTarea] = useState(false);
   const [error, setError] = useState("");
 
   const trabajadorId = miembro?.trabajador_id ?? null;
   const esHoy = fecha === hoy;
+
+  const diasFichados = useMemo(
+    () => new Set(fichajesDelMes.filter((f) => f.hora_entrada).map((f) => f.fecha)),
+    [fichajesDelMes]
+  );
+  const diasIncompletos = useMemo(
+    () => new Set(fichajesDelMes.filter((f) => f.hora_entrada && !f.hora_salida).map((f) => f.fecha)),
+    [fichajesDelMes]
+  );
 
   const { pendientes, encolar } = useFichajesPendientes(supabase, (data) => {
     setFichaje((prev) => (prev && prev.id === data.id ? data : prev ?? data));
@@ -53,7 +65,7 @@ export function MiFichaje() {
 
   const cargar = useCallback(async () => {
     if (!obraActual || !trabajadorId) return;
-    const { desde, hasta } = monthBounds(currentMonth());
+    const { desde, hasta } = monthBounds(mesFiltro);
 
     const [delDia, delMes] = await Promise.all([
       supabase
@@ -66,16 +78,18 @@ export function MiFichaje() {
       // Del mes cuentan TODAS las obras: puede haber estado en varias.
       supabase
         .from("fichajes")
-        .select("hora_entrada,hora_salida")
+        .select("fecha,hora_entrada,hora_salida")
         .eq("trabajador_id", trabajadorId)
         .gte("fecha", desde)
         .lt("fecha", hasta),
     ]);
 
     setFichaje((delDia.data as Fichaje) ?? null);
-    const t = totalesFichajes(delMes.data ?? [], jornadaHoras);
+    const filasMes = (delMes.data as { fecha: string; hora_entrada: string | null; hora_salida: string | null }[]) ?? [];
+    setFichajesDelMes(filasMes);
+    const t = totalesFichajes(filasMes, jornadaHoras);
     setMes({ trabajados: t.trabajados, extra: t.extra });
-  }, [obraActual, trabajadorId, fecha, jornadaHoras, supabase]);
+  }, [obraActual, trabajadorId, fecha, mesFiltro, jornadaHoras, supabase]);
 
   useEffect(() => {
     cargar();
@@ -171,12 +185,24 @@ export function MiFichaje() {
   return (
     <div>
       <HeroStatCard
-        label={tr("Mis horas · {mes}", { mes: monthLabel(currentMonth()) })}
+        label={tr("Mis horas · {mes}", { mes: monthLabel(mesFiltro) })}
         value={fmtHoras(mes.trabajados)}
         sub={mes.extra > 0 ? tr("{horas} extra este mes", { horas: fmtHoras(mes.extra) }) : tr("Total del mes")}
       />
 
-      <div className="mt-4">
+      <div className="mt-3.5">
+        <CalendarioMes
+          mes={mesFiltro}
+          onMesChange={setMesFiltro}
+          fechaSeleccionada={fecha}
+          onSelectFecha={setFecha}
+          diasFichados={diasFichados}
+          diasIncompletos={diasIncompletos}
+          totalHorasMes={fmtHoras(mes.trabajados)}
+        />
+      </div>
+
+      <div className="mt-1">
         <DayNav fecha={fecha} onChange={setFecha} />
       </div>
 

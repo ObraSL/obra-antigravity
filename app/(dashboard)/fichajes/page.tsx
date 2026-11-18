@@ -223,9 +223,58 @@ function FichajesCuadrilla() {
     setAddingWorker(false);
   };
 
+  // Cálculos de live-status: ¿Quién está dónde hoy?
+  const activosEnEstaObra = fichajes.filter((f) => f.hora_entrada && !f.hora_salida).length;
+  const activosOtrasObras = fichajesOtrasObras.filter((f) => f.hora_entrada && !f.hora_salida).length;
+  const sinFicharHoy = trabajadores.filter(
+    (t) =>
+      !fichajes.some((f) => f.trabajador_id === t.id && f.hora_entrada) &&
+      !fichajesOtrasObras.some((f) => f.trabajador_id === t.id && f.hora_entrada)
+  ).length;
+
   return (
     <div>
       <DayNav fecha={fecha} onChange={setFecha} />
+
+      {/* Resumen live-status: ¿Quién está dónde hoy? */}
+      {esHoy && (
+        <div className="mb-3.5 overflow-hidden rounded-2xl border border-white/14 bg-[#141a16]/85 p-3 shadow-lg backdrop-blur-xl">
+          <div className="mb-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#d7dc9a]">
+              <Users size={13} />
+              <span>{tr("Estado del equipo hoy")}</span>
+            </div>
+            <span className="text-[11px] text-white/60">
+              {trN(trabajadores.length, "{n} operario", "{n} operarios")}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-2">
+              <div className="text-[10.5px] font-semibold text-emerald-400 truncate">{tr("En esta obra")}</div>
+              <div className="font-mono-obra text-base font-bold text-white flex items-center justify-center gap-1.5 mt-0.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                {activosEnEstaObra}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-blue-500/25 bg-blue-500/10 p-2">
+              <div className="text-[10.5px] font-semibold text-blue-400 truncate">{tr("Otras obras")}</div>
+              <div className="font-mono-obra text-base font-bold text-white flex items-center justify-center gap-1.5 mt-0.5">
+                <span className="h-2 w-2 rounded-full bg-blue-400" />
+                {activosOtrasObras}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/5 p-2">
+              <div className="text-[10.5px] font-semibold text-white/50 truncate">{tr("Sin fichar")}</div>
+              <div className="font-mono-obra text-base font-bold text-white/70 mt-0.5">
+                {sinFicharHoy}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Deja claro en qué obra se está fichando, y permite cambiarla aquí
           mismo sin subir al selector de arriba. */}
