@@ -41,6 +41,30 @@
         "name": "Stepped Gantt Milestone View with Laser 'Hoy'",
         "component": "components/planificacion/Gantt.tsx",
         "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "WORKER_CARDS_GRID",
+        "name": "Responsive Worker Cards Grid with Transport Badges & Tactile Stamps",
+        "component": "app/(dashboard)/fichajes/page.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "SEGMENTED_EXPENSES_TABS",
+        "name": "Obsidian Segmented Control Expense Filters (All / Paid by Me / Company)",
+        "component": "app/(dashboard)/gastos/page.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "DAY_NAV_CAPSULE",
+        "name": "Obsidian Glass Day Navigation Capsule with Quick 'Today' Return",
+        "component": "components/ui/DayNav.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "SUN_MODE",
+        "name": "Sun Mode High-Contrast Light Theme for Outdoor Sunlight",
+        "component": "lib/tema.ts & lib/tema-provider.tsx",
+        "status": "FROZEN_APPROVED"
       }
     ],
     "verification_gallery": {
