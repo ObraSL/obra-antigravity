@@ -181,50 +181,61 @@ function LoginPageInterior() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col justify-between px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
-      {/* Barra superior con botón volver y selector de idioma */}
-      <div className="relative z-10 flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex h-10 w-10 items-center justify-center rounded-[14px] border border-white/18 bg-[#5a655d]/85 text-white backdrop-blur-md transition hover:bg-[#5a655d]"
-          aria-label={tr("Volver")}
-        >
-          <ArrowLeft size={18} />
-        </Link>
-        <SelectorIdioma />
-      </div>
-
-      {/* Render 3D de la villa moderna iluminada (Screen 1 Dribbble) */}
-      <div className="relative -mx-4 my-2 flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[#141916]">
+      {/* Fondo arquitectónico a pantalla completa con viñeta y desenfoque suave */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/hero-villa.png"
-          alt="Control de Obra Villa"
-          className="max-h-[220px] w-full object-contain object-bottom select-none"
+          src="/bg-obra.jpg"
+          alt="Edificio en Construcción"
+          className="h-full w-full object-cover object-center scale-[1.02] opacity-90 transition-transform duration-1000 ease-out"
         />
-      </div>
-
-      {/* Tarjeta principal de vidrio esmerilado oliva con resplandor cálido */}
-      <div className="relative overflow-hidden rounded-[36px] border border-white/18 bg-[#60675d]/92 p-6 backdrop-blur-xl shadow-[0_20px_50px_rgba(12,16,13,0.38)]">
+        {/* Viñeta atmosférica cinematográfica: oscura en los bordes y suave hacia el centro */}
         <div
-          className="pointer-events-none absolute inset-0"
+          className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(85% 50% at 50% 0%, rgba(238,195,142,0.26) 0%, rgba(215,220,154,0.08) 45%, transparent 72%)",
+              "radial-gradient(ellipse at 50% 35%, rgba(20,26,22,0.35) 0%, rgba(16,21,18,0.72) 58%, rgba(10,13,11,0.94) 100%)",
           }}
         />
+        {/* Suave velo con desenfoque para dar aspecto clásico e integrar la arquitectura sin distracciones */}
+        <div className="absolute inset-0 bg-[#141916]/25 backdrop-blur-[1.5px]" />
+      </div>
 
-        <div className="relative mb-5 text-center">
-          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/18 bg-white/10 text-[#d7dc9a]">
-            <Logo size={24} />
-          </div>
-          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">
-            Welcome
-          </h1>
-          <div className="mt-1 text-[13px] text-white/75">
-            {tr("Control de Obra")}
-          </div>
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-md flex-col justify-between px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
+        {/* Barra superior con botón volver y selector de idioma */}
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="flex h-10 w-10 items-center justify-center rounded-[14px] border border-white/18 bg-[#1e2520]/80 text-white shadow-lg backdrop-blur-md transition hover:bg-[#1e2520]"
+            aria-label={tr("Volver")}
+          >
+            <ArrowLeft size={18} />
+          </Link>
+          <SelectorIdioma />
         </div>
+
+        {/* Tarjeta principal de vidrio esmerilado con resplandor cálido (marco táctico Obsidian Glass) */}
+        <div className="my-auto overflow-hidden rounded-[36px] border border-white/20 bg-[#252f28]/85 p-6 backdrop-blur-2xl shadow-[0_24px_60px_rgba(0,0,0,0.55)]">
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(85% 50% at 50% 0%, rgba(238,195,142,0.22) 0%, rgba(215,220,154,0.06) 45%, transparent 72%)",
+            }}
+          />
+
+          <div className="relative mb-5 text-center">
+            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/18 bg-white/10 text-[#d7dc9a]">
+              <Logo size={24} />
+            </div>
+            <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">
+              Welcome
+            </h1>
+            <div className="mt-1 text-[13px] text-white/75">
+              {tr("Control de Obra")}
+            </div>
+          </div>
 
         <form onSubmit={submit} className="relative">
           <Field label={tr("Email")}>
@@ -378,5 +389,6 @@ function LoginPageInterior() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
