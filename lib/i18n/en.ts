@@ -634,5 +634,10 @@ export const en: Record<string, string> = {
   "Acceso de prueba": "Test access",
   "Entrar a la app (Demo en 1 Clic)": "Enter app (1-Click Demo)",
   "Entrar como Dueño (Demo 1-Clic)": "Log in as Owner (1-Click Demo)",
+  "Entrar como Trabajador (Demo 1-Clic)": "Log in as Worker (1-Click Demo)",
+  "Demo Dueño": "Demo Owner",
+  "Demo Trabajador": "Demo Worker",
+  "Control total": "Full control",
+  "Fichaje y horas": "Clock-in & hours",
   "Prueba todas las funciones en 1 clic sin escribir contraseñas:": "Test all features in 1 click without typing passwords:",
 };

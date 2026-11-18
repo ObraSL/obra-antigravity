@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, HardHat, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Field, Input } from "@/components/ui/Field";
 import { PrimaryButton } from "@/components/ui/Button";
@@ -85,27 +85,34 @@ function LoginPageInterior() {
     }
   }, []);
 
-  const iniciarComoDemo = useCallback(async () => {
-    setError("");
-    setAviso("");
-    setCargando(true);
-    const { error: err } = await supabase.auth.signInWithPassword({
-      email: "demo@obrasl.com",
-      password: "ObraDemo2026!",
-    });
-    if (err) {
-      setError(err.message);
-      setCargando(false);
-      return;
-    }
-    localStorage.setItem(EMAIL_RECORDADO, "demo@obrasl.com");
-    router.push("/");
-    router.refresh();
-  }, [supabase, router]);
+  const iniciarComoDemo = useCallback(
+    async (rol: "dueno" | "trabajador" = "dueno") => {
+      setError("");
+      setAviso("");
+      setCargando(true);
+      const email = rol === "dueno" ? "demo@obrasl.com" : "trabajador@obrasl.com";
+      const { error: err } = await supabase.auth.signInWithPassword({
+        email,
+        password: "ObraDemo2026!",
+      });
+      if (err) {
+        setError(err.message);
+        setCargando(false);
+        return;
+      }
+      localStorage.setItem(EMAIL_RECORDADO, email);
+      router.push("/");
+      router.refresh();
+    },
+    [supabase, router]
+  );
 
   useEffect(() => {
-    if (params.get("demo") === "1") {
-      iniciarComoDemo();
+    const d = params.get("demo");
+    if (d === "1" || d === "dueno") {
+      iniciarComoDemo("dueno");
+    } else if (d === "trabajador" || d === "worker") {
+      iniciarComoDemo("trabajador");
     }
   }, [params, iniciarComoDemo]);
 
@@ -215,8 +222,8 @@ function LoginPageInterior() {
           <SelectorIdioma />
         </div>
 
-        {/* Tarjeta principal de vidrio esmerilado con resplandor cálido (marco táctico Obsidian Glass) */}
-        <div className="my-auto overflow-hidden rounded-[36px] border border-white/20 bg-[#252f28]/85 p-6 backdrop-blur-2xl shadow-[0_24px_60px_rgba(0,0,0,0.55)]">
+        {/* Tarjeta principal de cristal puro con resplandor cálido (marco táctico Obsidian Glass de alta refracción) */}
+        <div className="my-auto overflow-hidden rounded-[36px] border border-white/28 bg-[#1c241e]/72 p-6 backdrop-blur-3xl shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.32),0_24px_65px_rgba(0,0,0,0.62)]">
           <div
             className="pointer-events-none absolute inset-0"
             style={{
@@ -369,22 +376,39 @@ function LoginPageInterior() {
           </button>
         )}
 
-        {/* Acceso rápido de demostración en 1 clic */}
-        <div className="relative mt-4 rounded-2xl border border-white/14 bg-[#4e5750]/85 p-3.5 text-center">
+        {/* Acceso rápido de demostración en 1 clic: Dueño vs Trabajador */}
+        <div className="relative mt-4 rounded-2xl border border-white/14 bg-[#141a16]/80 p-3.5 text-center">
           <div className="text-[11px] font-bold uppercase tracking-wider text-[#d7dc9a]">
             {tr("Acceso de prueba")}
           </div>
-          <button
-            type="button"
-            onClick={iniciarComoDemo}
-            disabled={cargando}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] border border-[#d7dc9a]/40 bg-[#d7dc9a]/18 px-3.5 py-2.5 text-[13.5px] font-bold text-[#d7dc9a] transition hover:bg-[#d7dc9a]/25 active:scale-[0.98]"
-          >
-            {cargando ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
-            <span>{tr("Entrar como Dueño (Demo 1-Clic)")}</span>
-          </button>
-          <div className="mt-2 text-[10.5px] text-white/70">
-            <span className="font-mono text-[#d7dc9a]">demo@obrasl.com</span> · <span className="font-mono text-[#d7dc9a]">ObraDemo2026!</span> · <span className="font-mono text-[#d7dc9a]">OBRA2026</span>
+          <div className="mt-2.5 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => iniciarComoDemo("dueno")}
+              disabled={cargando}
+              className="flex min-h-[46px] flex-col items-center justify-center rounded-[14px] border border-[#d7dc9a]/40 bg-[#d7dc9a]/16 px-2.5 py-1.5 text-center transition hover:bg-[#d7dc9a]/25 active:scale-[0.98]"
+            >
+              <span className="text-[12px] font-bold text-[#d7dc9a] flex items-center gap-1">
+                {cargando ? <Loader2 size={13} className="animate-spin" /> : <ShieldCheck size={13} />}
+                {tr("Demo Dueño")}
+              </span>
+              <span className="text-[10px] text-white/65">{tr("Control total")}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => iniciarComoDemo("trabajador")}
+              disabled={cargando}
+              className="flex min-h-[46px] flex-col items-center justify-center rounded-[14px] border border-white/20 bg-white/10 px-2.5 py-1.5 text-center transition hover:bg-white/16 active:scale-[0.98]"
+            >
+              <span className="text-[12px] font-bold text-white flex items-center gap-1">
+                {cargando ? <Loader2 size={13} className="animate-spin" /> : <HardHat size={13} />}
+                {tr("Demo Trabajador")}
+              </span>
+              <span className="text-[10px] text-white/65">{tr("Fichaje y horas")}</span>
+            </button>
+          </div>
+          <div className="mt-2 text-[10px] text-white/60">
+            <span className="font-mono text-[#d7dc9a]">demo@obrasl.com</span> · <span className="font-mono text-[#d7dc9a]">trabajador@obrasl.com</span>
           </div>
         </div>
       </div>

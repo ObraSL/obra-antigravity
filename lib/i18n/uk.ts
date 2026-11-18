@@ -654,5 +654,10 @@ export const uk: Record<string, string> = {
   "Acceso de prueba": "Тестовий доступ",
   "Entrar a la app (Demo en 1 Clic)": "Увійти в додаток (Демо в 1 клік)",
   "Entrar como Dueño (Demo 1-Clic)": "Увійти як Власник (Демо 1-клік)",
+  "Entrar como Trabajador (Demo 1-Clic)": "Увійти як Робітник (Демо 1-клік)",
+  "Demo Dueño": "Демо Власник",
+  "Demo Trabajador": "Демо Робітник",
+  "Control total": "Повний контроль",
+  "Fichaje y horas": "Зміна та години",
   "Prueba todas las funciones en 1 clic sin escribir contraseñas:": "Спробуйте всі функції в 1 клік без введення пароля:",
 };

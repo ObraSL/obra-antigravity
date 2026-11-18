@@ -1,27 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Sparkles } from "lucide-react";
-import { Sheet } from "@/components/ui/Sheet";
+import { HardHat, ShieldCheck } from "lucide-react";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
+import { Logo } from "@/components/ui/Logo";
 import { tr } from "@/lib/i18n";
 
-const OBRAS_DEMO = ["Skyline Heights Phase", "Obra Marbella", "Obra Centro"];
-
 /**
- * Pantalla pública (Screen 1 de la referencia Dribbble):
- * Lienzo Pistachio-Sage (#737F73), render arquitectónico 3D de la villa
- * iluminada en la mitad superior y tarjeta arqueada de vidrio esmerilado
- * oliva (#60675D) en la mitad inferior con botones Login (#D7DC9A) y
- * Sign up (#0E0C0D), más acceso directo Demo en 1 clic.
- *
- * Ocupa exactamente 100dvh sin scroll vertical ni horizontal.
+ * Pantalla pública (Landing v2):
+ * Fondo cinematográfico de construcción arquitectónica a pantalla completa,
+ * barra superior con identidad de marca oficial e idioma, y tarjeta de cristal
+ * esmerilado puro (Obsidian Glass) con 2 accesos demo en 1 clic (Dueño vs Trabajador).
  */
 export function LandingMock() {
-  const [obra, setObra] = useState(OBRAS_DEMO[0]);
-  const [picking, setPicking] = useState(false);
-
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-[#141916]">
       {/* Fondo arquitectónico a pantalla completa con viñeta y desenfoque suave */}
@@ -45,29 +36,25 @@ export function LandingMock() {
       </div>
 
       <div className="relative z-10 mx-auto flex h-[100dvh] max-w-md flex-col justify-between px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(0.75rem+env(safe-area-inset-top))]">
-        {/* Barra superior compacta con selector de obra de ejemplo e idioma */}
+        {/* Barra superior con identidad de marca (logo + nombre de la app) e idioma */}
         <div className="flex shrink-0 items-center justify-between gap-2">
-          <button
-            onClick={() => setPicking(true)}
-            className="flex items-center gap-2 rounded-full border border-white/18 bg-[#1e2520]/80 px-3.5 py-1.5 text-left shadow-lg backdrop-blur-md transition hover:bg-[#1e2520]"
-          >
-            <span className="h-2 w-2 rounded-full bg-[#d7dc9a]" />
-            <span className="max-w-[180px] truncate text-[12.5px] font-semibold text-white">
-              {obra}
+          <div className="flex items-center gap-2 rounded-full border border-white/28 bg-[#141a16]/75 px-3.5 py-1.5 backdrop-blur-xl shadow-lg">
+            <Logo size={18} className="text-[#d7dc9a]" />
+            <span className="text-[13px] font-bold tracking-tight text-white">
+              Control de Obra
             </span>
-            <ChevronDown size={14} className="shrink-0 text-white/75" />
-          </button>
+          </div>
 
           <SelectorIdioma />
         </div>
 
-        {/* Tarjeta inferior de vidrio esmerilado oliva con resplandor cálido superior (la "ramka") */}
-        <div className="my-auto overflow-hidden rounded-[36px] border border-white/20 bg-[#252f28]/85 p-6 text-center backdrop-blur-2xl shadow-[0_24px_60px_rgba(0,0,0,0.55)]">
+        {/* Tarjeta de cristal arquitectónico puro (marco táctico Obsidian Glass de alta refracción) */}
+        <div className="my-auto overflow-hidden rounded-[36px] border border-white/28 bg-[#1c241e]/72 p-6 text-center backdrop-blur-3xl shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.32),0_24px_65px_rgba(0,0,0,0.62)]">
           <div
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(85% 55% at 50% 0%, rgba(238,195,142,0.22) 0%, rgba(215,220,154,0.06) 45%, transparent 72%)",
+                "radial-gradient(85% 50% at 50% 0%, rgba(238,195,142,0.24) 0%, rgba(215,220,154,0.06) 45%, transparent 72%)",
             }}
           />
 
@@ -94,35 +81,38 @@ export function LandingMock() {
                 {tr("Crear cuenta")}
               </Link>
 
-              <Link
-                href="/login?demo=1"
-                className="mt-1 flex min-h-[42px] w-full items-center justify-center gap-2 rounded-[14px] border border-[#d7dc9a]/40 bg-[#1c231e]/85 px-3 py-2 text-[13px] font-semibold text-[#d7dc9a] transition hover:bg-[#1c231e] active:scale-[0.99]"
-              >
-                <Sparkles size={14} />
-                <span>{tr("Entrar a la app (Demo en 1 Clic)")}</span>
-              </Link>
+              {/* 2 Acciones de demostración en 1 clic: Dueño vs Trabajador */}
+              <div className="mt-2 pt-3 border-t border-white/12">
+                <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#d7dc9a]">
+                  {tr("Acceso de prueba")}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    href="/login?demo=dueno"
+                    className="flex min-h-[46px] flex-col items-center justify-center rounded-[14px] border border-[#d7dc9a]/40 bg-[#d7dc9a]/16 px-2.5 py-1.5 text-center transition hover:bg-[#d7dc9a]/25 active:scale-[0.98]"
+                  >
+                    <span className="text-[12px] font-bold text-[#d7dc9a] flex items-center gap-1">
+                      <ShieldCheck size={13} />
+                      {tr("Demo Dueño")}
+                    </span>
+                    <span className="text-[10px] text-white/65">{tr("Control total")}</span>
+                  </Link>
+
+                  <Link
+                    href="/login?demo=trabajador"
+                    className="flex min-h-[46px] flex-col items-center justify-center rounded-[14px] border border-white/20 bg-white/10 px-2.5 py-1.5 text-center transition hover:bg-white/16 active:scale-[0.98]"
+                  >
+                    <span className="text-[12px] font-bold text-white flex items-center gap-1">
+                      <HardHat size={13} />
+                      {tr("Demo Trabajador")}
+                    </span>
+                    <span className="text-[10px] text-white/65">{tr("Fichaje y horas")}</span>
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        {picking && (
-          <Sheet title={tr("Elegir obra")} onClose={() => setPicking(false)}>
-            <div className="flex flex-col gap-2">
-              {OBRAS_DEMO.map((o) => (
-                <button
-                  key={o}
-                  onClick={() => {
-                    setObra(o);
-                    setPicking(false);
-                  }}
-                  className="rounded-xl border border-obra-card-border bg-obra-card p-3 text-left text-[14.5px] font-semibold text-obra-text"
-                >
-                  {o}
-                </button>
-              ))}
-            </div>
-          </Sheet>
-        )}
       </div>
     </div>
   );
