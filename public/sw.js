@@ -6,7 +6,7 @@
 // servidor no estaba accesible. Mientras estamos iterando el diseño, siempre
 // queremos la última versión. El modo sin conexión de verdad (fichar sin
 // cobertura) se hará aparte, con su propia cola de datos.
-const CACHE_NAME = "control-de-obra-v2";
+const CACHE_NAME = "control-de-obra-v3";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
