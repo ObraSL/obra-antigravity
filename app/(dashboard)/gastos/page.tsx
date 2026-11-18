@@ -161,7 +161,8 @@ export default function GastosPage() {
         <Plus size={16} /> {tr("Añadir gasto o factura")}
       </PrimaryButton>
 
-      <div className="mb-3 flex gap-1.5">
+      {/* Selector táctico de filtro rápido estilo Obsidian Segmented Control */}
+      <div className="mb-4 flex items-center rounded-[18px] border border-white/12 bg-[#0e120f]/85 p-1 backdrop-blur-xl shadow-[0_8px_20px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.08)]">
         {FILTROS_QUIEN.map((f) => {
           const activo = quien === f.id;
           return (
@@ -169,13 +170,14 @@ export default function GastosPage() {
               key={f.id}
               onClick={() => setQuien(f.id)}
               className={clsx(
-                "flex flex-1 items-center justify-center gap-1.5 rounded-full border px-2 py-2 text-[12.5px] font-semibold",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-[14px] py-2 text-[13px] font-medium transition-all active:scale-[0.98]",
                 activo
-                  ? "border-obra-yellow bg-obra-yellow/10 text-obra-yellow"
-                  : "border-obra-line text-obra-text-dim"
+                  ? "bg-[#1c221e] text-[#d7dc9a] border border-white/14 shadow-[0_2px_8px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.14)]"
+                  : "text-white/70 hover:bg-white/5 hover:text-white"
               )}
             >
-              {f.icon && <f.icon size={13} />} {tr(f.label)}
+              {f.icon && <f.icon size={14} className={activo ? "text-[#d7dc9a]" : "text-white/60"} />}
+              <span className="tracking-tight">{tr(f.label)}</span>
             </button>
           );
         })}

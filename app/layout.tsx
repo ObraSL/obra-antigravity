@@ -1,22 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, JetBrains_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { cookies, headers } from "next/headers";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { COOKIE_IDIOMA, esIdioma, idiomaDesde } from "@/lib/i18n";
 import { IdiomaProvider } from "@/lib/i18n/provider";
+import { COOKIE_TEMA, esTema, type Tema } from "@/lib/tema";
+import { TemaProvider } from "@/lib/tema-provider";
 import type { ReactNode } from "react";
 
 const geist = Geist({
   variable: "--font-geist",
   subsets: ["latin", "latin-ext", "cyrillic"],
   display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -47,19 +43,26 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const guardado = (await cookies()).get(COOKIE_IDIOMA)?.value;
-  const idioma = esIdioma(guardado)
-    ? guardado
+  const cookieStore = await cookies();
+  const guardadoIdioma = cookieStore.get(COOKIE_IDIOMA)?.value;
+  const idioma = esIdioma(guardadoIdioma)
+    ? guardadoIdioma
     : idiomaDesde(((await headers()).get("accept-language") ?? "").split(","));
+
+  const guardadoTema = cookieStore.get(COOKIE_TEMA)?.value;
+  const tema: Tema = esTema(guardadoTema) ? guardadoTema : "salvia";
 
   return (
     <html
       lang={idioma}
-      className={`${geist.variable} ${jetbrainsMono.variable} font-sans h-full antialiased`}
+      data-tema={tema === "claro" ? "claro" : undefined}
+      className={`${geist.variable} font-sans h-full antialiased`}
     >
       <body className="min-h-full bg-obra-bg text-obra-text">
         <ServiceWorkerRegister />
-        <IdiomaProvider inicial={idioma}>{children}</IdiomaProvider>
+        <TemaProvider inicial={tema}>
+          <IdiomaProvider inicial={idioma}>{children}</IdiomaProvider>
+        </TemaProvider>
       </body>
     </html>
   );

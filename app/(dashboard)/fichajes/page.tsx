@@ -264,122 +264,131 @@ function FichajesCuadrilla() {
       {trabajadores.length === 0 ? (
         <Empty icon={Users} title={tr("Todavía no hay trabajadores")} sub={tr("Añade el primero para empezar a fichar.")} />
       ) : (
-        <div className="flex flex-col gap-2.5">
+        <div className="grid gap-3.5 md:grid-cols-2">
           {trabajadores.map((t) => {
             const r = registroDe(t.id);
             const otras = otrasObrasDe(t.id);
+            const min = minutosTrabajados(r?.hora_entrada, r?.hora_salida);
+            const extra = min !== null ? minutosExtra(min, jornadaHoras) : 0;
             return (
-              <Card key={t.id} className="p-3.5">
-                <div className="mb-2.5 flex items-center justify-between">
-                  <div className="min-w-0">
-                    <div className="text-[15.5px] font-bold text-obra-text">{t.nombre}</div>
-                    {otras.length > 0 && (
-                      <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11.5px] text-obra-text-faint">
-                        <span>{tr("También hoy en:")}</span>
-                        {otras.map((o) => (
-                          <button
-                            key={o.id}
-                            onClick={() => setObraId(o.id)}
-                            className="font-bold text-obra-yellow underline underline-offset-2"
-                          >
-                            {o.nombre}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setUbicacionSheet(t.id)}
-                    className={`flex items-center gap-1 text-xs ${r?.ubicacion ? "text-obra-text" : "text-obra-text-faint"}`}
-                  >
-                    <MapPin size={13} />
-                    <span className="max-w-[130px] truncate">{r?.ubicacion || tr("Añadir zona/tarea")}</span>
-                  </button>
-                </div>
-                {(() => {
-                  const min = minutosTrabajados(r?.hora_entrada, r?.hora_salida);
-                  if (min === null) return null;
-                  const extra = minutosExtra(min, jornadaHoras);
-                  return (
-                    <div className="mb-2.5 flex items-center gap-2 text-[12.5px]">
-                      <span className="font-mono-obra font-bold text-obra-text">{fmtHoras(min)}</span>
-                      {extra > 0 && (
-                        <span className="rounded-full bg-obra-yellow/12 px-2 py-0.5 text-[11px] font-bold text-obra-yellow">
-                          {tr("+{horas} extra", { horas: fmtHoras(extra) })}
-                        </span>
+              <Card key={t.id} className="flex flex-col justify-between p-4 rounded-[24px] border border-white/14 bg-[#5a655d]/85 backdrop-blur-xl shadow-[0_8px_24px_rgba(0,0,0,0.22)]">
+                <div>
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate text-[15.5px] font-medium tracking-tight text-white">{t.nombre}</div>
+                      {otras.length > 0 && (
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px] text-white/70">
+                          <span>{tr("También hoy en:")}</span>
+                          {otras.map((o) => (
+                            <button
+                              key={o.id}
+                              onClick={() => setObraId(o.id)}
+                              className="font-medium text-[#d7dc9a] underline underline-offset-2"
+                            >
+                              {o.nombre}
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
-                  );
-                })()}
-
-                {(r?.hora_corregida || r?.confirmado_trabajador === false) && (
-                  <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
-                    {r.hora_corregida && (
-                      <div className="inline-flex items-center gap-1 rounded-full bg-obra-text-faint/15 px-2 py-0.5 text-[11px] font-semibold text-obra-text-dim">
-                        <PenLine size={11} /> {tr("Horas corregidas por el dueño")}
+                    {min !== null && (
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <span className="rounded-xl border border-white/12 bg-white/10 px-2.5 py-0.5 font-mono-obra text-[12.5px] font-medium text-[#d7dc9a]">
+                          {fmtHoras(min)}
+                        </span>
+                        {extra > 0 && (
+                          <span className="rounded-full bg-[#d7dc9a]/15 px-2 py-0.5 text-[10.5px] font-medium text-[#d7dc9a]">
+                            {tr("+{horas} extra", { horas: fmtHoras(extra) })}
+                          </span>
+                        )}
                       </div>
                     )}
-                    <div
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                        r.confirmado_trabajador
-                          ? "bg-obra-green/12 text-obra-green"
-                          : "bg-obra-yellow/15 text-obra-yellow"
+                  </div>
+
+                  <div className="mb-3 flex items-center justify-between">
+                    <button
+                      onClick={() => setUbicacionSheet(t.id)}
+                      className={`flex items-center gap-1 text-[11.5px] rounded-lg px-2 py-1 transition ${
+                        r?.ubicacion ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
                       }`}
                     >
-                      {r.confirmado_trabajador ? tr("Confirmado") : tr("Sin confirmar")}
-                    </div>
+                      <MapPin size={12} className="shrink-0" />
+                      <span className="max-w-[140px] truncate">{r?.ubicacion || tr("Añadir zona/tarea")}</span>
+                    </button>
+
+                    {/* Cómo llegó a la obra, si lo apuntó él desde su móvil */}
+                    {(() => {
+                      const texto = modulos.transporte ? textoTransporte(r?.transporte ?? null, r?.traido_por ?? null) : null;
+                      if (!texto) return null;
+                      return (
+                        <div className="flex items-center gap-1 text-[11.5px] text-white/70">
+                          <Car size={12} className="shrink-0" />
+                          <span className="truncate max-w-[130px]">{texto}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
-                )}
 
-                {r?.ubicacion_ok === false && (
-                  <div className="mb-2.5 inline-flex items-center gap-1 rounded-full bg-obra-yellow/15 px-2 py-0.5 text-[11px] font-semibold text-obra-yellow">
-                    <MapPin size={11} /> {tr("Fichó fuera de la obra")}
-                    {r.distancia_metros != null && ` ${tr("(a {m} m)", { m: r.distancia_metros })}`}
-                  </div>
-                )}
-
-                {/* Cómo llegó a la obra, si lo apuntó él desde su móvil. */}
-                {(() => {
-                  const texto = modulos.transporte ? textoTransporte(r?.transporte ?? null, r?.traido_por ?? null) : null;
-                  if (!texto) return null;
-                  return (
-                    <div className="mb-2.5 flex items-center gap-1.5 text-[12px] text-obra-text-faint">
-                      <Car size={12} /> {texto}
+                  {(r?.hora_corregida || r?.confirmado_trabajador === false || r?.ubicacion_ok === false) && (
+                    <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                      {r.hora_corregida && (
+                        <div className="inline-flex items-center gap-1 rounded-full bg-white/12 px-2 py-0.5 text-[10.5px] font-medium text-white/90">
+                          <PenLine size={10} /> {tr("Horas corregidas por el dueño")}
+                        </div>
+                      )}
+                      {r.confirmado_trabajador != null && (
+                        <div
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] font-medium ${
+                            r.confirmado_trabajador
+                              ? "bg-emerald-500/15 text-emerald-300"
+                              : "bg-[#e0826d]/15 text-[#e0826d]"
+                          }`}
+                        >
+                          {r.confirmado_trabajador ? tr("Confirmado") : tr("Sin confirmar")}
+                        </div>
+                      )}
+                      {r.ubicacion_ok === false && (
+                        <div className="inline-flex items-center gap-1 rounded-full bg-[#e0826d]/15 px-2 py-0.5 text-[10.5px] font-medium text-[#e0826d]">
+                          <MapPin size={10} /> {tr("Fichó fuera de la obra")}
+                          {r.distancia_metros != null && ` (${r.distancia_metros}m)`}
+                        </div>
+                      )}
                     </div>
-                  );
-                })()}
-
-                {/* Fichar es solo de hoy y a la hora de ahora. Otro día, los
-                    botones solo enseñan lo que hay. */}
-                <div className="flex gap-2">
-                  <StampButton
-                    label={tr("Entrada")}
-                    hora={r?.hora_entrada}
-                    color="green"
-                    icon={LogIn}
-                    onClick={() => marcar(t.id, "hora_entrada")}
-                    disabled={!esHoy}
-                    pendiente={pendienteDe(t.id, "hora_entrada")}
-                  />
-                  <StampButton
-                    label={tr("Salida")}
-                    hora={r?.hora_salida}
-                    color="orange"
-                    icon={LogOut}
-                    onClick={() => marcar(t.id, "hora_salida")}
-                    disabled={!esHoy || (!r?.hora_entrada && !pendienteDe(t.id, "hora_entrada"))}
-                    pendiente={pendienteDe(t.id, "hora_salida")}
-                  />
+                  )}
                 </div>
 
-                {esDueno && (
-                  <button
-                    onClick={() => setCorrigiendo(t.id)}
-                    className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-[12.5px] font-semibold text-obra-text-dim"
-                  >
-                    <PenLine size={13} /> {tr("Corregir horas")}
-                  </button>
-                )}
+                {/* Sellos de Entrada y Salida */}
+                <div>
+                  <div className="flex gap-2">
+                    <StampButton
+                      label={tr("Entrada")}
+                      hora={r?.hora_entrada}
+                      color="green"
+                      icon={LogIn}
+                      onClick={() => marcar(t.id, "hora_entrada")}
+                      disabled={!esHoy}
+                      pendiente={pendienteDe(t.id, "hora_entrada")}
+                    />
+                    <StampButton
+                      label={tr("Salida")}
+                      hora={r?.hora_salida}
+                      color="orange"
+                      icon={LogOut}
+                      onClick={() => marcar(t.id, "hora_salida")}
+                      disabled={!esHoy || (!r?.hora_entrada && !pendienteDe(t.id, "hora_entrada"))}
+                      pendiente={pendienteDe(t.id, "hora_salida")}
+                    />
+                  </div>
+
+                  {esDueno && (
+                    <button
+                      onClick={() => setCorrigiendo(t.id)}
+                      className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-[#121613]/50 py-1.5 text-[12px] font-medium text-white/75 transition hover:bg-[#121613] hover:text-white"
+                    >
+                      <PenLine size={12} /> {tr("Corregir horas")}
+                    </button>
+                  )}
+                </div>
               </Card>
             );
           })}

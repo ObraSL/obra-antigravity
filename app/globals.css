@@ -8,27 +8,27 @@
 ------------------------------------------------------------------ */
 @theme {
   /* Lienzo principal Pistachio-Sage y superficies de vidrio oliva */
-  --color-obra-bg: #737f73;
-  --color-obra-bg-elevated: #5c675e;
-  --color-obra-card: #5a655d;
-  --color-obra-card-border: rgba(255, 255, 255, 0.14);
-  --color-obra-line: rgba(255, 255, 255, 0.14);
+  --color-obra-bg: var(--c-bg, #737f73);
+  --color-obra-bg-elevated: var(--c-bg-elevated, #5c675e);
+  --color-obra-card: var(--c-card, #5a655d);
+  --color-obra-card-border: var(--c-card-border, rgba(255, 255, 255, 0.14));
+  --color-obra-line: var(--c-line, rgba(255, 255, 255, 0.14));
 
   /* Paneles tácticos profundos (Sub-tarjetas Attendance/Alerts, Hero) */
-  --color-obra-slate: #4e5750;
-  --color-obra-slate-card: #58635b;
-  --color-obra-slate-border: rgba(255, 255, 255, 0.16);
+  --color-obra-slate: var(--c-slate, #4e5750);
+  --color-obra-slate-card: var(--c-slate-card, #58635b);
+  --color-obra-slate-border: var(--c-slate-border, rgba(255, 255, 255, 0.16));
 
   /* Tipografía blanca y caliza cálida de alto contraste (AAA > 5.5:1) */
-  --color-obra-text: #ffffff;
-  --color-obra-text-dim: #f3f6f2;
-  --color-obra-text-faint: #d8e2d7;
+  --color-obra-text: var(--c-text, #ffffff);
+  --color-obra-text-dim: var(--c-text-dim, #f3f6f2);
+  --color-obra-text-faint: var(--c-text-faint, #d8e2d7);
 
   /* Señal e interacción principal: Pistachio-Lime (#D7DC9A) */
-  --color-obra-yellow: #d7dc9a;
-  --color-obra-yellow-dim: #bfc583;
-  --color-obra-yellow-ink: #141814;
-  --color-obra-accent-ink: #d7dc9a;
+  --color-obra-yellow: var(--c-yellow, #d7dc9a);
+  --color-obra-yellow-dim: var(--c-yellow-dim, #bfc583);
+  --color-obra-yellow-ink: var(--c-yellow-ink, #141814);
+  --color-obra-accent-ink: var(--c-accent-ink, #d7dc9a);
 
   /* Estados operativos y acento Coral (#E0826D) */
   --color-obra-orange: #e0826d;
@@ -39,14 +39,35 @@
   --color-obra-red-text: #ffdad2;
 
   /* Cápsula de navegación inferior flotante de vidrio esmerilado */
-  --color-obra-nav-bg: #646f67;
-  --color-obra-nav-border: rgba(255, 255, 255, 0.18);
+  --color-obra-nav-bg: var(--c-nav-bg, #646f67);
+  --color-obra-nav-border: var(--c-nav-border, rgba(255, 255, 255, 0.18));
 
   /* Familias tipográficas modernas (Geist Vercel) */
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-geist), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body: var(--font-geist), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono-obra: var(--font-jetbrains-mono), monospace;
+  --font-mono-obra: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+:root[data-tema="claro"] {
+  --c-bg: #eef1ea;
+  --c-bg-elevated: #dfe5da;
+  --c-card: #ffffff;
+  --c-card-border: rgba(20, 22, 19, 0.12);
+  --c-line: rgba(20, 22, 19, 0.12);
+  --c-slate: #dfe5da;
+  --c-slate-card: #f7f9f5;
+  --c-slate-border: rgba(20, 22, 19, 0.1);
+  --c-text: #141613;
+  --c-text-dim: #2b3329;
+  --c-text-faint: #4e5a4b;
+  --c-yellow: #889e18;
+  --c-yellow-dim: #6d7f13;
+  --c-yellow-ink: #ffffff;
+  --c-accent-ink: #4a5d14;
+  --c-nav-bg: #ffffff;
+  --c-nav-border: rgba(20, 22, 19, 0.14);
+  color-scheme: light;
 }
 
 html,

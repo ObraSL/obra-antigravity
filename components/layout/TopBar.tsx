@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bell, Calendar, ChevronDown } from "lucide-react";
+import { Bell, Calendar, ChevronDown, Moon, Sun } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
+import { useTema } from "@/lib/tema-provider";
 import { Sheet } from "@/components/ui/Sheet";
 import { ObraPicker } from "./ObraPicker";
 import { tr } from "@/lib/i18n";
@@ -12,6 +13,7 @@ import { tr } from "@/lib/i18n";
 export function TopBar() {
   const { obraActual, obras } = useObra();
   const { miembro, gestiona } = useMiembro();
+  const { tema, alternarTema } = useTema();
   const [picking, setPicking] = useState(false);
 
   if (obras.length === 0) return null;
@@ -58,6 +60,18 @@ export function TopBar() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              onClick={alternarTema}
+              aria-label={tema === "claro" ? tr("Tema salvia") : tr("Modo sol")}
+              title={tema === "claro" ? tr("Tema salvia") : tr("Modo sol")}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-white/14 bg-[#141915]/90 text-white backdrop-blur-md transition-colors hover:bg-[#1c221e] shadow-[0_4px_12px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.15)]"
+            >
+              {tema === "claro" ? (
+                <Moon size={17} className="text-[#d7dc9a]" />
+              ) : (
+                <Sun size={17} className="text-[#d7dc9a]" />
+              )}
+            </button>
             {gestiona && (
               <Link
                 href="/resumen"

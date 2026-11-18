@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Blocks, Building2, ChevronRight, Clock, HardHat, KeyRound, Languages, LogOut, MapPin, Plus, ShieldAlert, Trash2, Truck, Users } from "lucide-react";
+import { Blocks, Building2, ChevronRight, Clock, HardHat, KeyRound, Languages, LogOut, MapPin, Moon, Plus, ShieldAlert, Sun, Trash2, Truck, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
+import { useTema } from "@/lib/tema-provider";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, type Obra, type Trabajador, type Vehiculo } from "@/lib/types";
 import { Input } from "@/components/ui/Field";
@@ -41,6 +42,7 @@ function AjustesGestor() {
     guardarJefeVeTodas,
   } = useObra();
   const { rol, esDueno, modulos, guardarModulo } = useMiembro();
+  const { tema, alternarTema } = useTema();
   // Quién puede tocar el maestro de obras, trabajadores y vehículos.
   const administra = rol === "dueno" || rol === "manager";
   const [jornadaTexto, setJornadaTexto] = useState<string>("");
@@ -109,6 +111,29 @@ function AjustesGestor() {
       <div className="mb-7">
         <SelectorIdioma />
       </div>
+
+      <SectionTitle icon={Sun} title={tr("Aspecto")} />
+      <Card className="mb-7 p-3.5 flex items-center justify-between">
+        <div>
+          <div className="text-[14px] font-medium text-white">{tr("Modo sol")}</div>
+          <div className="text-[12px] text-white/70">
+            {tr("Papel claro de alto contraste para trabajar a pleno sol en la obra.")}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={alternarTema}
+          className={clsx(
+            "flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-[12.5px] font-medium transition",
+            tema === "claro"
+              ? "border-[#d7dc9a] bg-[#1c221e] text-[#d7dc9a]"
+              : "border-white/14 bg-white/10 text-white hover:bg-white/15"
+          )}
+        >
+          {tema === "claro" ? <Sun size={15} /> : <Moon size={15} />}
+          <span>{tema === "claro" ? tr("Claro (Sol)") : tr("Salvia")}</span>
+        </button>
+      </Card>
       {esDueno && (
         <>
           <SectionTitle icon={KeyRound} title={tr("Accesos")} />
@@ -375,6 +400,7 @@ function AjustesGestor() {
 function AjustesTrabajador() {
   const router = useRouter();
   const { miembro } = useMiembro();
+  const { tema, alternarTema } = useTema();
 
   const cerrarSesion = async () => {
     await createClient().auth.signOut();
@@ -400,6 +426,29 @@ function AjustesTrabajador() {
       <div className="mb-7">
         <SelectorIdioma />
       </div>
+
+      <SectionTitle icon={Sun} title={tr("Aspecto")} />
+      <Card className="mb-7 p-3.5 flex items-center justify-between">
+        <div>
+          <div className="text-[14px] font-medium text-white">{tr("Modo sol")}</div>
+          <div className="text-[12px] text-white/70">
+            {tr("Papel claro de alto contraste para trabajar a pleno sol en la obra.")}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={alternarTema}
+          className={clsx(
+            "flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-[12.5px] font-medium transition",
+            tema === "claro"
+              ? "border-[#d7dc9a] bg-[#1c221e] text-[#d7dc9a]"
+              : "border-white/14 bg-white/10 text-white hover:bg-white/15"
+          )}
+        >
+          {tema === "claro" ? <Sun size={15} /> : <Moon size={15} />}
+          <span>{tema === "claro" ? tr("Claro (Sol)") : tr("Salvia")}</span>
+        </button>
+      </Card>
 
       <button
         onClick={cerrarSesion}
