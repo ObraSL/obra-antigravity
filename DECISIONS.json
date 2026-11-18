@@ -65,6 +65,30 @@
         "name": "Sun Mode High-Contrast Light Theme for Outdoor Sunlight",
         "component": "lib/tema.ts & lib/tema-provider.tsx",
         "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "WORKER_ATTENDANCE_CALENDAR",
+        "name": "Interactive Month Attendance Calendar Grid with Status Dots",
+        "component": "components/fichajes/CalendarioMes.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "TEAM_LIVE_STATUS",
+        "name": "Live Team Telemetry Capsule (Here / Other sites / Not Clocked In)",
+        "component": "app/(dashboard)/fichajes/page.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "CREW_QR_INVITE",
+        "name": "Zero-Friction Instant Crew QR Code Joining Modal",
+        "component": "components/ajustes/ModalQrInvitacion.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "REGISTRO_JORNADA_PDF",
+        "name": "Official Spanish Labor Compliance Workday Log Printable Generator (RDL 8/2019)",
+        "component": "lib/exportar-pdf-jornada.ts",
+        "status": "FROZEN_APPROVED"
       }
     ],
     "verification_gallery": {
