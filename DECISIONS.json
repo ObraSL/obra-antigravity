@@ -31,9 +31,9 @@
         "status": "FROZEN_APPROVED"
       },
       {
-        "id": "TELEMETRY_EQ",
-        "name": "Vertical Equalizer Telemetry Progress Bars",
-        "component": "components/ui/BarrasProgreso.tsx",
+        "id": "ARCHITECTURAL_TELEMETRY",
+        "name": "High-Precision Architectural Telemetry Suite (CifraAvance, Varillas Rebar Scale, Dual Medidor Gauge, Precision Gantt)",
+        "component": "components/marca/CifraAvance.tsx, components/marca/Varillas.tsx, components/marca/Medidor.tsx, components/ui/SliderAvance.tsx",
         "status": "FROZEN_APPROVED"
       },
       {
