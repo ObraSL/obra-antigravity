@@ -89,6 +89,18 @@
         "name": "Official Spanish Labor Compliance Workday Log Printable Generator (RDL 8/2019)",
         "component": "lib/exportar-pdf-jornada.ts",
         "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "AI_TICKET_SCANNER",
+        "name": "Smart Multimodal OCR AI Receipt & Invoice Scanner with 1-Click Confirmation",
+        "component": "app/api/ia/escanear-ticket/route.ts & app/(dashboard)/gastos/page.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "AI_MULTILINGUAL_VOICE_JOURNAL",
+        "name": "Multilingual AI Site Journal with Auto-Translation and Structured Action Items Extraction (Comprar, Extra Cliente, Incidencia, Progreso)",
+        "component": "app/api/ia/audio/route.ts, app/(dashboard)/notas/page.tsx, components/inicio/InicioTrabajador.tsx",
+        "status": "FROZEN_APPROVED"
       }
     ],
     "verification_gallery": {
