@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import { Building2, Camera, Loader2, Lock, PenLine, Plus, Receipt, Trash2, Wallet } from "lucide-react";
+import { Building2, Camera, Loader2, Lock, PenLine, Plus, Receipt, Sparkles, Trash2, Wallet } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
 import { createClient } from "@/lib/supabase/client";
@@ -382,6 +382,57 @@ function GastoForm({
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [guardadoEnOtra, setGuardadoEnOtra] = useState("");
+  const [escaneandoIA, setEscaneandoIA] = useState(false);
+  const [datosIA, setDatosIA] = useState<{ proveedor: string; importe: number; categoria: string } | null>(null);
+
+  const procesarArchivoIA = async (nuevoArchivo: ArchivoElegido | null) => {
+    setArchivo(nuevoArchivo);
+    if (!nuevoArchivo) {
+      setDatosIA(null);
+      return;
+    }
+
+    if (nuevoArchivo.type.startsWith("image/")) {
+      setEscaneandoIA(true);
+      try {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            const base64 = (reader.result as string).split(",")[1];
+            const res = await fetch("/api/ia/escanear-ticket", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                imageBase64: base64,
+                mimeType: nuevoArchivo.type,
+                nombreArchivo: nuevoArchivo.name,
+              }),
+            });
+            const json = await res.json();
+            if (json.ok) {
+              if (json.proveedor) setProveedor(json.proveedor);
+              if (json.importe) setImporte(String(json.importe));
+              if (json.fecha) setFecha(json.fecha);
+              if (json.categoria) setCategoria(json.categoria);
+              if (json.concepto && !nota) setNota(json.concepto);
+              setDatosIA({
+                proveedor: json.proveedor,
+                importe: json.importe,
+                categoria: json.categoria,
+              });
+            }
+          } catch (err) {
+            console.error("Error escaneando ticket:", err);
+          } finally {
+            setEscaneandoIA(false);
+          }
+        };
+        reader.readAsDataURL(nuevoArchivo.blob);
+      } catch {
+        setEscaneandoIA(false);
+      }
+    }
+  };
 
   const valido = Number(importe) > 0;
   // Si una categoría vieja ya no está en la lista, se sigue pudiendo elegir
@@ -468,7 +519,33 @@ function GastoForm({
             {tr("Ya tiene foto. Si eliges otra, sustituye a la de ahora.")}
           </div>
         )}
-        <SelectorArchivo archivo={archivo} onChange={setArchivo} />
+        <SelectorArchivo archivo={archivo} onChange={procesarArchivoIA} />
+        {escaneandoIA && (
+          <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/10 p-3 text-[12.5px] text-[#d7dc9a] animate-pulse">
+            <Sparkles size={16} className="shrink-0" />
+            <span>{tr("Escaneando ticket con IA…")}</span>
+          </div>
+        )}
+        {datosIA && !escaneandoIA && (
+          <div className="mt-2.5 flex items-center justify-between rounded-xl border border-[#d7dc9a]/30 bg-[#141a16] p-3 text-[12px] shadow-sm">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="h-2 w-2 rounded-full bg-[#d7dc9a] shrink-0" />
+              <span className="truncate text-white font-medium">
+                {tr("Reconocido por IA: {prov} · {imp} €", {
+                  prov: datosIA.proveedor,
+                  imp: String(datosIA.importe),
+                })}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={guardar}
+              className="shrink-0 rounded-lg bg-[#d7dc9a] px-2.5 py-1 text-[11px] font-bold text-[#141a16] transition active:scale-95"
+            >
+              {tr("Confirmar en 1 clic")}
+            </button>
+          </div>
+        )}
       </Field>
 
       <Field label={tr("Proveedor")}>

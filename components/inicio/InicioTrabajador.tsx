@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Clock, LogIn, LogOut, MapPin } from "lucide-react";
+import { ArrowRight, Clock, LogIn, LogOut, MapPin, Mic } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
 import { createClient } from "@/lib/supabase/client";
@@ -178,6 +178,27 @@ export function InicioTrabajador() {
           </div>
         </div>
         <ArrowRight size={18} className="text-[#d7dc9a]" />
+      </Link>
+
+      {/* Botón de informe de voz del día */}
+      <Link
+        href="/notas"
+        className="flex items-center justify-between rounded-[20px] border border-white/12 bg-[#141a16]/85 p-4 shadow-lg backdrop-blur-xl transition hover:border-white/20 active:scale-[0.99]"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-[#d7dc9a] border border-white/10 shadow-sm">
+            <Mic size={18} strokeWidth={2.2} />
+          </div>
+          <div>
+            <div className="text-[14px] font-bold text-white">
+              {tr("Dictar informe del día")}
+            </div>
+            <div className="text-[11.5px] text-white/50">
+              {tr("Diario de obra con IA")}
+            </div>
+          </div>
+        </div>
+        <ArrowRight size={18} className="text-white/40" />
       </Link>
     </div>
   );
