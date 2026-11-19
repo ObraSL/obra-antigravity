@@ -11,6 +11,7 @@ import { BottomNav } from "./BottomNav";
 import { SinObras } from "./SinObras";
 import { SinObrasAsignadas } from "./SinObrasAsignadas";
 import { PullToRefresh } from "./PullToRefresh";
+import { ModalConsentimientoLegal } from "@/components/legal/ModalConsentimientoLegal";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -51,6 +52,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           )}
         </main>
         {obras.length > 0 && <BottomNav />}
+        <ModalConsentimientoLegal />
       </div>
     </div>
   );

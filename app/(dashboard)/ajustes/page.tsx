@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Blocks, Building2, ChevronRight, Clock, HardHat, KeyRound, Languages, LogOut, MapPin, Moon, Plus, Shield, ShieldAlert, Sun, Trash2, Truck, Users } from "lucide-react";
+import { Blocks, Building2, ChevronRight, Clock, HardHat, KeyRound, Languages, LogOut, MapPin, Moon, Plus, Scale, Shield, ShieldAlert, Sun, Trash2, Truck, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
@@ -19,6 +19,7 @@ import { SoporteAcceso } from "@/components/ajustes/SoporteAcceso";
 import { EliminarObra } from "@/components/ajustes/EliminarObra";
 import { ConfigurarObra } from "@/components/ajustes/ConfigurarObra";
 import { ModalEliminarCuenta } from "@/components/ajustes/ModalEliminarCuenta";
+import { ModalConsentimientoLegal } from "@/components/legal/ModalConsentimientoLegal";
 import clsx from "clsx";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
 import { LISTA_MODULOS } from "@/lib/modulos";
@@ -51,6 +52,7 @@ function AjustesGestor() {
   const [borrandoObra, setBorrandoObra] = useState<Obra | null>(null);
   const [configurandoObra, setConfigurandoObra] = useState<Obra | null>(null);
   const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
+  const [viendoConsentimiento, setViendoConsentimiento] = useState(false);
 
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -384,6 +386,20 @@ function AjustesGestor() {
         </div>
         <div className="border-t border-obra-line pt-3 flex items-center justify-between">
           <div>
+            <div className="text-[13px] font-semibold text-obra-text">{tr("Descargo de responsabilidad")}</div>
+            <div className="text-[11.5px] text-obra-text-faint">{tr("Software «tal cual» (AS IS) y descargo legal")}</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setViendoConsentimiento(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-obra-line bg-white/5 px-3 py-1.5 text-xs font-semibold text-obra-text hover:bg-white/10 transition"
+          >
+            <Scale size={13} className="text-obra-yellow" />
+            <span>{tr("Ver descargo y permisos")}</span>
+          </button>
+        </div>
+        <div className="border-t border-obra-line pt-3 flex items-center justify-between">
+          <div>
             <div className="text-[13px] font-semibold text-red-400">{tr("Zona de peligro")}</div>
             <div className="text-[11.5px] text-obra-text-faint">Apple Guideline 5.1.1(v) · {tr("Eliminar cuenta")}</div>
           </div>
@@ -407,6 +423,10 @@ function AjustesGestor() {
 
       {eliminandoCuenta && (
         <ModalEliminarCuenta onClose={() => setEliminandoCuenta(false)} />
+      )}
+
+      {viendoConsentimiento && (
+        <ModalConsentimientoLegal forzarAbierto onClose={() => setViendoConsentimiento(false)} />
       )}
 
       {borrandoObra && (
@@ -442,6 +462,7 @@ function AjustesTrabajador() {
   const { miembro } = useMiembro();
   const { tema, alternarTema } = useTema();
   const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
+  const [viendoConsentimiento, setViendoConsentimiento] = useState(false);
 
   const cerrarSesion = async () => {
     await createClient().auth.signOut();
@@ -510,6 +531,20 @@ function AjustesTrabajador() {
         </div>
         <div className="border-t border-obra-line pt-3 flex items-center justify-between">
           <div>
+            <div className="text-[13px] font-semibold text-obra-text">{tr("Descargo de responsabilidad")}</div>
+            <div className="text-[11.5px] text-obra-text-faint">{tr("Software «tal cual» (AS IS) y descargo legal")}</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setViendoConsentimiento(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-obra-line bg-white/5 px-3 py-1.5 text-xs font-semibold text-obra-text hover:bg-white/10 transition"
+          >
+            <Scale size={13} className="text-obra-yellow" />
+            <span>{tr("Ver descargo y permisos")}</span>
+          </button>
+        </div>
+        <div className="border-t border-obra-line pt-3 flex items-center justify-between">
+          <div>
             <div className="text-[13px] font-semibold text-red-400">{tr("Zona de peligro")}</div>
             <div className="text-[11.5px] text-obra-text-faint">Apple Guideline 5.1.1(v) · {tr("Eliminar mi cuenta")}</div>
           </div>
@@ -533,6 +568,10 @@ function AjustesTrabajador() {
 
       {eliminandoCuenta && (
         <ModalEliminarCuenta onClose={() => setEliminandoCuenta(false)} />
+      )}
+
+      {viendoConsentimiento && (
+        <ModalConsentimientoLegal forzarAbierto onClose={() => setViendoConsentimiento(false)} />
       )}
     </div>
   );

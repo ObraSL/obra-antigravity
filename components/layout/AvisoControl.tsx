@@ -70,9 +70,15 @@ export function AvisoControl() {
               dentro: <span className="font-semibold text-obra-text">{tr("dentro o fuera de la obra")}</span>,
             })}
           </p>
-          <p>
+          <p className="mb-3">
             {tr("Algunas obras tienen una")}{" "}
             <span className="font-semibold text-obra-text">{tr("hora mínima para fichar la entrada")}</span>{tr(", para que no se pueda marcar la llegada antes de que empiece el turno.")}
+          </p>
+          <p className="mb-3">
+            {tr("Acceso al micrófono: si utilizas el diario o notas de voz, el audio se procesa y transcribe con IA.")}
+          </p>
+          <p className="text-[11.5px] border-t border-obra-line pt-2 text-obra-text-faint">
+            {tr("Software auxiliar: se suministra «tal cual» (AS IS). La empresa es la única responsable del cumplimiento laboral.")}
           </p>
         </div>
 

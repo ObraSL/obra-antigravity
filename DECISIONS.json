@@ -119,6 +119,12 @@
         "name": "Apple App Review Compliant Permissions Specification (Camera, Microphone, GPS at Clock-in, Photo Library) and Slate Manifest",
         "component": "_pack/ios/Info.plist, public/manifest.webmanifest",
         "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "LEGAL_DISCLAIMER_AND_PERMISSIONS_CONSENT",
+        "name": "User Legal Consent Onboarding & Disclaimer Modal (Mic, GPS, AS IS liability exclusion, hold harmless)",
+        "component": "components/legal/ModalConsentimientoLegal.tsx, app/terminos/page.tsx, components/layout/AvisoControl.tsx, app/(dashboard)/ajustes/page.tsx",
+        "status": "FROZEN_APPROVED"
       }
     ],
     "verification_gallery": {
