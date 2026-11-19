@@ -2,20 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Clock, LogIn, LogOut } from "lucide-react";
+import { ArrowRight, Clock, LogIn, LogOut, MapPin } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
 import { createClient } from "@/lib/supabase/client";
 import type { Fichaje } from "@/lib/types";
 import { currentMonth, monthBounds, monthLabel, todayStr } from "@/lib/format";
 import { fmtHoras, totalesFichajes } from "@/lib/horas";
-import { HeroStatCard, StatCard } from "@/components/ui/Card";
-import { NumeroGrande } from "@/components/ui/NumeroGrande";
+import { CifraAvance } from "@/components/marca/CifraAvance";
 import { tr } from "@/lib/i18n";
 
 /**
- * Inicio de un trabajador: su obra, el avance general y sus horas. Nada de
- * dinero, presupuestos ni horas de los demás.
+ * Inicio de un trabajador: su obra, el avance arquitectónico y sus horas.
+ * Diseño profesional de alta gama con vidrio obsidiana táctico.
  */
 export function InicioTrabajador() {
   const { obraActual, jornadaHoras } = useObra();
@@ -66,53 +65,119 @@ export function InicioTrabajador() {
   if (!obraActual) return null;
 
   return (
-    <div>
-      <div className="mb-5">
-        <div className="font-display text-2xl font-bold uppercase text-obra-text">
+    <div className="space-y-3.5">
+      {/* Cabecera con datos de la obra */}
+      <div className="mb-2 px-1">
+        <h1 className="text-[20px] font-bold uppercase tracking-tight text-white">
           {obraActual.nombre}
-        </div>
+        </h1>
         {obraActual.direccion && (
-          <div className="text-sm text-obra-text-faint">{obraActual.direccion}</div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-white/60">
+            <MapPin size={13} className="shrink-0 text-white/50" />
+            <span className="truncate">{obraActual.direccion}</span>
+          </div>
         )}
       </div>
 
+      {/* Tarjeta de avance arquitectónico */}
       {avance != null && (
-        <div className="mb-3.5 rounded-[20px] border border-obra-card-border bg-obra-card p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-obra-text-dim">
-            {tr("Avance de la obra")}
+        <div className="overflow-hidden rounded-[24px] border border-white/14 bg-[#141a16]/90 p-5 backdrop-blur-xl shadow-lg">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-white/50">
+                {tr("Avance de la obra")}
+              </div>
+              <CifraAvance valor={avance} tamano="cifra" className="mt-1" />
+            </div>
+            <span className="flex items-center gap-1.5 rounded-full border border-[#d7dc9a]/30 bg-[#d7dc9a]/12 px-3 py-1 text-[11px] font-bold text-[#d7dc9a]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d7dc9a] animate-pulse" />
+              {tr("En plazo")}
+            </span>
           </div>
-          <NumeroGrande valor={avance} />
+          {/* Pista de progreso fina de alta precisión */}
+          <div className="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-white/12">
+            <div
+              className="h-full rounded-full bg-[#d7dc9a] transition-all duration-500"
+              style={{ width: `${Math.max(2, Math.min(100, Math.round(avance)))}%` }}
+            />
+          </div>
         </div>
       )}
 
-      <HeroStatCard
-        label={tr("Mis horas · {mes}", { mes: monthLabel(currentMonth()) })}
-        value={fmtHoras(mes.trabajados)}
-        sub={mes.extra > 0 ? tr("{horas} extra", { horas: fmtHoras(mes.extra) }) : tr("Total del mes")}
-        icon={<Clock size={16} />}
-      />
-
-      <div className="mt-3 grid grid-cols-3 gap-3">
-        <StatCard label={tr("Entrada")} value={hoyFichaje?.hora_entrada || "—"} icon={<LogIn size={18} />} />
-        <StatCard label={tr("Salida")} value={hoyFichaje?.hora_salida || "—"} icon={<LogOut size={18} />} />
-        <StatCard label={tr("Días")} value={String(mes.dias)} icon={<Clock size={18} />} />
+      {/* Tarjeta de horas mensuales del trabajador */}
+      <div className="rounded-[24px] border border-white/14 bg-[#141a16]/90 p-5 backdrop-blur-xl shadow-lg">
+        <div className="flex items-center justify-between">
+          <span className="text-[12.5px] font-semibold text-white/60">
+            {tr("Mis horas · {mes}", { mes: monthLabel(currentMonth()) })}
+          </span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[#d7dc9a]">
+            <Clock size={15} />
+          </div>
+        </div>
+        <div className="font-mono-obra mt-2 text-[38px] font-light tracking-tight text-white leading-none">
+          {fmtHoras(mes.trabajados)}
+        </div>
+        <div className="mt-1 text-[12px] text-white/50">
+          {mes.extra > 0 ? tr("{horas} extra", { horas: fmtHoras(mes.extra) }) : tr("Total del mes")}
+        </div>
       </div>
 
+      {/* Grid de 3 KPIs de la jornada */}
+      <div className="grid grid-cols-3 gap-2.5">
+        <div className="rounded-[18px] border border-white/12 bg-[#141a16]/85 p-3 backdrop-blur-xl shadow-sm">
+          <div className="flex items-center justify-between text-white/50">
+            <span className="text-[11px] font-medium">{tr("Entrada")}</span>
+            <LogIn size={13} className="text-[#d7dc9a]" />
+          </div>
+          <div className="font-mono-obra mt-1 text-[15px] font-semibold text-white">
+            {hoyFichaje?.hora_entrada || "—"}
+          </div>
+        </div>
+
+        <div className="rounded-[18px] border border-white/12 bg-[#141a16]/85 p-3 backdrop-blur-xl shadow-sm">
+          <div className="flex items-center justify-between text-white/50">
+            <span className="text-[11px] font-medium">{tr("Salida")}</span>
+            <LogOut size={13} className="text-[#ffdad2]" />
+          </div>
+          <div className="font-mono-obra mt-1 text-[15px] font-semibold text-white">
+            {hoyFichaje?.hora_salida || "—"}
+          </div>
+        </div>
+
+        <div className="rounded-[18px] border border-white/12 bg-[#141a16]/85 p-3 backdrop-blur-xl shadow-sm">
+          <div className="flex items-center justify-between text-white/50">
+            <span className="text-[11px] font-medium">{tr("Días")}</span>
+            <Clock size={13} className="text-white/60" />
+          </div>
+          <div className="font-mono-obra mt-1 text-[15px] font-semibold text-white">
+            {mes.dias}
+          </div>
+        </div>
+      </div>
+
+      {/* Botón de acceso directo para fichar */}
       <Link
         href="/fichajes"
-        className="mt-6 flex items-center justify-between rounded-2xl border border-obra-card-border bg-obra-card p-4 transition-colors hover:border-obra-text-faint"
+        className="flex items-center justify-between rounded-[20px] border border-[#d7dc9a]/35 bg-[#141a16]/95 p-4 shadow-lg backdrop-blur-xl transition hover:border-[#d7dc9a]/60 active:scale-[0.99]"
       >
-        <div className="flex items-center gap-2.5">
-          <Clock size={18} className="text-obra-yellow" />
-          <span className="text-[14.5px] font-semibold text-obra-text">
-            {hoyFichaje?.hora_entrada && !hoyFichaje?.hora_salida
-              ? tr("Marcar mi salida")
-              : hoyFichaje?.hora_entrada
-                ? tr("Mis horas de hoy")
-                : tr("Marcar mi entrada")}
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d7dc9a] text-[#141a16] shadow-sm">
+            <Clock size={18} strokeWidth={2.5} />
+          </div>
+          <div>
+            <div className="text-[14px] font-bold text-white">
+              {hoyFichaje?.hora_entrada && !hoyFichaje?.hora_salida
+                ? tr("Marcar mi salida")
+                : hoyFichaje?.hora_entrada
+                  ? tr("Mis horas de hoy")
+                  : tr("Marcar mi entrada")}
+            </div>
+            <div className="text-[11.5px] text-white/50">
+              {todayStr()}
+            </div>
+          </div>
         </div>
-        <ArrowRight size={16} className="text-obra-text-faint" />
+        <ArrowRight size={18} className="text-[#d7dc9a]" />
       </Link>
     </div>
   );

@@ -7,6 +7,7 @@ import { todayStr } from "@/lib/format";
 import { duracionDias } from "@/lib/gantt";
 import { Field, Input } from "@/components/ui/Field";
 import { PrimaryButton } from "@/components/ui/Button";
+import { SliderAvance } from "@/components/ui/SliderAvance";
 import { tr, trN } from "@/lib/i18n";
 
 export type DatosTarea = {
@@ -87,30 +88,7 @@ export function TareaForm({
       )}
 
       <Field label={tr("Avance — {pct}%", { pct: avance })}>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={avance}
-          onChange={(e) => setAvance(Number(e.target.value))}
-          className="h-9 w-full accent-obra-yellow"
-        />
-        <div className="mt-1 flex gap-1.5">
-          {[0, 25, 50, 75, 100].map((v) => (
-            <button
-              key={v}
-              onClick={() => setAvance(v)}
-              className={`flex-1 rounded-lg border py-1.5 text-[11.5px] font-bold transition-colors ${
-                avance === v
-                  ? "border-obra-yellow bg-obra-yellow/10 text-obra-text"
-                  : "border-obra-card-border bg-obra-card text-obra-text-dim"
-              }`}
-            >
-              {v}%
-            </button>
-          ))}
-        </div>
+        <SliderAvance valor={avance} onChange={setAvance} paso={5} />
       </Field>
 
       <Field label={tr("Presupuesto (€, opcional)")}>

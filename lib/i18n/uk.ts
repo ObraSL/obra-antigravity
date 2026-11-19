@@ -679,4 +679,11 @@ export const uk: Record<string, string> = {
   "¡Enlace copiado!": "Посилання скопійовано!",
   "Copiar enlace directo": "Скопіювати пряме посилання",
   "Descargar Registro de Jornada (PDF)": "Завантажити Табель Jornada (PDF)",
+  "En plazo": "В графіку",
+  "Tareas con retraso": "Задачі із затримкою",
+  "Avance {a} %": "Прогрес {a} %",
+  "Tiempo {t} %": "Час {t} %",
+  "Tiempo transcurrido": "Час за графіком",
+  "del presupuesto gastado": "кошторису витрачено",
+  "Presupuesto": "Кошторис",
 };

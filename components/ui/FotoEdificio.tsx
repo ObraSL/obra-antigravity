@@ -30,7 +30,7 @@ export function FotoEdificio({
     badgeLabel ??
     (tieneRetraso
       ? tr("{n} con retraso", { n: retrasadas })
-      : "On Track");
+      : tr("En plazo"));
 
   return (
     <div

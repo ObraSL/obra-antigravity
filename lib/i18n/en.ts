@@ -659,4 +659,11 @@ export const en: Record<string, string> = {
   "¡Enlace copiado!": "Link copied!",
   "Copiar enlace directo": "Copy direct link",
   "Descargar Registro de Jornada (PDF)": "Download Workday Log (PDF)",
+  "En plazo": "On schedule",
+  "Tareas con retraso": "Delayed tasks",
+  "Avance {a} %": "Progress {a} %",
+  "Tiempo {t} %": "Time {t} %",
+  "Tiempo transcurrido": "Elapsed time",
+  "del presupuesto gastado": "of budget spent",
+  "Presupuesto": "Budget",
 };
