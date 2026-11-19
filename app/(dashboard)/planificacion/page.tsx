@@ -15,13 +15,15 @@ import { Gantt } from "@/components/planificacion/Gantt";
 import { ImportarExcel } from "@/components/planificacion/ImportarExcel";
 import { TareaForm, type DatosTarea } from "@/components/planificacion/TareaForm";
 import { FotoEdificio } from "@/components/ui/FotoEdificio";
+import { CifraAvance } from "@/components/marca/CifraAvance";
+import { Varillas, varillasPresupuesto } from "@/components/marca/Varillas";
 import { tr, trJsx, trN } from "@/lib/i18n";
 
 /**
- * Planificación de la obra (Screen 3 de la referencia Dribbble):
- * Cabecera 3D del edificio en construcción, tarjeta de vidrio oliva esmerilado,
- * panel oscuro "Budget Used" con ecualizador de 40 barras (Blanco -> Pistachio-Lime -> Coral)
- * y diagrama de Gantt escalonado con líneas guía discontinuas.
+ * Planificación de la obra de nivel empresarial:
+ * Cabecera atmosférica, tarjeta ejecutiva de obsidiana táctica,
+ * telemetría de avance arquitectónico, resumen presupuestario real
+ * y diagrama de Gantt de alta precisión.
  */
 export default function PlanificacionPage() {
   const { obraActual } = useObra();
@@ -75,7 +77,7 @@ export default function PlanificacionPage() {
     await cargar();
   };
 
-  /** Mete en el plan los capítulos leídos del Excel. Devuelve el fallo, si lo hay. */
+  /** Mete en el plan los capítulos leídos del Excel. */
   const importar = async (r: ResultadoImport, reemplazar: boolean): Promise<string | null> => {
     if (reemplazar) {
       const { error: errBorrar } = await supabase
@@ -122,32 +124,24 @@ export default function PlanificacionPage() {
   const presupuestado = tareas.reduce((s, t) => s + Number(t.presupuesto || 0), 0);
 
   return (
-    <div>
-      {/* Fotografía atmosférica de la obra con grúa torre (Screen 3 Dribbble) */}
+    <div className="space-y-4">
+      {/* Fotografía atmosférica de la obra con badge de estado */}
       <FotoEdificio
         prioritaria
         retrasadas={retrasadas}
         altura="h-[210px] sm:h-[240px]"
       />
 
-      {/* Tarjeta contenedora principal de vidrio esmerilado oliva (Screen 3 Dribbble) */}
-      <div className="relative z-10 -mt-6 overflow-hidden rounded-[30px] border border-white/18 bg-[#68746a]/92 p-5 backdrop-blur-xl shadow-[0_18px_42px_rgba(12,16,13,0.3)]">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(110% 90% at 85% 0%, rgba(238,195,142,0.22) 0%, rgba(215,220,154,0.08) 40%, transparent 70%)",
-          }}
-        />
-
+      {/* Tarjeta contenedora ejecutiva en vidrio obsidiana táctico */}
+      <div className="relative z-10 -mt-8 overflow-hidden rounded-[26px] border border-white/14 bg-[#141a16]/92 p-5 backdrop-blur-2xl shadow-[0_20px_48px_rgba(0,0,0,0.38)]">
         <div className="relative">
-          {/* Título de la obra + porcentaje de avance */}
+          {/* Título de la obra + Cifra de avance */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="truncate text-[17px] font-medium leading-snug tracking-tight text-white">
+              <h1 className="truncate text-[18px] font-semibold leading-snug tracking-tight text-white">
                 {obraActual.nombre}
               </h1>
-              <div className="mt-0.5 truncate text-[12.5px] font-normal text-white/75">
+              <div className="mt-0.5 truncate text-[12.5px] text-white/60">
                 {obraActual.direccion ||
                   (tareas.length === 0
                     ? tr("Todavía no hay plan")
@@ -157,104 +151,90 @@ export default function PlanificacionPage() {
                       }))}
               </div>
             </div>
-            <div className="shrink-0 rounded-full border border-white/18 bg-white/12 px-3 py-1 font-mono-obra text-[13.5px] font-medium text-[#d7dc9a]">
+            <span className="flex items-center gap-1.5 rounded-full border border-[#d7dc9a]/30 bg-[#d7dc9a]/12 px-3 py-1 font-mono-obra text-[12px] font-bold text-[#d7dc9a]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d7dc9a] animate-pulse" />
               {avance}%
-            </div>
+            </span>
           </div>
 
-          {/* Tarjeta oscura "Budget Used" con ecualizador de 40 barras (Screen 3 Dribbble) */}
-          <div className="mt-4 rounded-[24px] border border-white/12 bg-[#525b53]/95 p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]">
+          {/* Panel de métricas clave */}
+          <div className="mt-4 rounded-[20px] border border-white/10 bg-white/5 p-4 backdrop-blur-md">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="text-[13.5px] font-medium tracking-tight text-white">
-                  {presupuestado > 0 ? tr("Presupuestado") : tr("Avance de la obra")}
+                <div className="text-[11.5px] font-medium uppercase tracking-wider text-white/55">
+                  {presupuestado > 0 ? tr("Presupuesto total") : tr("Avance de la obra")}
                 </div>
-                <div className="mt-0.5 font-mono-obra text-[17px] font-semibold text-[#d7dc9a]">
+                <div className="mt-1 font-mono-obra text-[20px] font-bold text-white">
                   {presupuestado > 0 ? fmtEUR(presupuestado) : `${avance}%`}
                 </div>
               </div>
 
-              {/* Etiquetas con líneas verticales discontinuas estilo Day Left / Pending */}
-              <div className="flex items-center gap-5 text-right">
-                <div className="relative">
-                  <div className="text-[10.5px] text-white/70">
-                    {rango ? trN(rango.dias, "{n} día", "{n} días") : "Days"}
+              {/* Indicadores de estado de tareas */}
+              <div className="flex items-center gap-4 text-right">
+                <div>
+                  <div className="text-[10.5px] text-white/55">
+                    {rango ? trN(rango.dias, "{n} día", "{n} días") : "Días"}
                   </div>
-                  <div className="font-mono-obra text-[12.5px] font-bold text-white">
+                  <div className="font-mono-obra text-[13px] font-bold text-white">
                     {hechas}/{tareas.length}
                   </div>
                 </div>
-                <div className="relative">
-                  <div className="text-[10.5px] text-white/70">{tr("Pendiente")}</div>
-                  <div className="font-mono-obra text-[12.5px] font-bold text-[#e0826d]">
+                <div>
+                  <div className="text-[10.5px] text-white/55">{tr("Pendiente")}</div>
+                  <div className="font-mono-obra text-[13px] font-bold text-[#e0826d]">
                     {Math.max(0, tareas.length - hechas)}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Ecualizador de código de barras de 40 segmentos (Blanco -> Pistachio-Lime -> Coral) */}
-            <div className="relative mt-4 flex h-[38px] items-end justify-between gap-[2px] pt-2" aria-hidden>
-              {Array.from({ length: 40 }).map((_, idx) => {
-                const color =
-                  idx < 14 ? "#ffffff" : idx < 28 ? "#d7dc9a" : "#e0826d";
-                const altura =
-                  idx === 14 || idx === 28
-                    ? "100%"
-                    : idx % 5 === 0
-                      ? "88%"
-                      : idx % 3 === 0
-                        ? "72%"
-                        : "80%";
-                return (
-                  <div key={idx} className="relative flex h-full flex-1 items-end justify-center">
-                    {(idx === 14 || idx === 28) && (
-                      <span className="absolute -top-2 h-2 w-2 rounded-full border border-white bg-[#525b53]" />
-                    )}
-                    <span
-                      className="w-full max-w-[3.5px] rounded-full"
-                      style={{ height: altura, background: color }}
-                    />
-                  </div>
-                );
-              })}
+            {/* Regla de varillas arquitectónicas */}
+            <div className="mt-3.5">
+              <Varillas
+                varillas={varillasPresupuesto(avance)}
+                alto={20}
+                grosor={0.5}
+                resumen={tr("Avance de la obra")}
+              />
             </div>
           </div>
 
-          {/* Botones de acción (Añadir tarea / Desde Excel) */}
-          <div className="mb-4 mt-4 grid grid-cols-2 gap-2.5">
+          {/* Botones de acción */}
+          <div className="mt-4 grid grid-cols-2 gap-2.5">
             <PrimaryButton onClick={() => setAnadiendo(true)}>
               <Plus size={16} /> {tr("Añadir tarea")}
             </PrimaryButton>
             <GhostButton
               onClick={() => setImportando(true)}
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 border border-white/12 bg-white/5 text-white hover:bg-white/10"
             >
               <FileSpreadsheet size={15} /> {tr("Desde Excel")}
             </GhostButton>
           </div>
 
           {error && (
-            <div className="mb-4 rounded-xl bg-obra-red-bg px-3.5 py-3 text-[13px] text-obra-red-text">
+            <div className="mt-3 rounded-xl bg-obra-red-bg px-3.5 py-3 text-[13px] text-obra-red-text">
               {tr("No se ha podido guardar:")} {error}
             </div>
           )}
 
-          {/* Sección Project Timeline (Gantt) */}
+          {/* Sección Diagrama de Gantt */}
           {tareas.length === 0 ? (
-            <Empty
-              icon={CalendarRange}
-              title={tr("Sin planificación todavía")}
-              sub={tr("Añade las tareas de la obra con sus fechas y verás aquí el diagrama y el avance.")}
-            />
+            <div className="mt-4">
+              <Empty
+                icon={CalendarRange}
+                title={tr("Sin planificación todavía")}
+                sub={tr("Añade las tareas de la obra con sus fechas y verás aquí el diagrama y el avance.")}
+              />
+            </div>
           ) : (
-            <div className="mt-2 rounded-[24px] border border-white/14 bg-[#535c54]/85 p-4">
-              <div className="mb-3 flex items-center justify-between border-b border-white/14 pb-2.5">
-                <span className="text-[15px] font-bold text-white">
+            <div className="mt-4 rounded-[22px] border border-white/12 bg-[#121613]/85 p-4 shadow-lg backdrop-blur-xl">
+              <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-2.5">
+                <span className="text-[14px] font-bold text-white">
                   {tr("Planificación")}
                 </span>
                 {rango && (
-                  <span className="text-[11.5px] text-white/75">
+                  <span className="font-mono-obra text-[11px] text-white/60">
                     {trJsx("Del {desde} al {hasta}", {
                       desde: <span className="font-semibold text-white">{fmtDate(rango.desde)}</span>,
                       hasta: <span className="font-semibold text-white">{fmtDate(rango.hasta)}</span>,
