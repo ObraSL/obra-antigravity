@@ -1,13 +1,14 @@
 {
   "name": "Control de Obra",
   "short_name": "Control de Obra",
-  "description": "Fichajes, vehículos, gastos y facturas de tus obras.",
+  "description": "Fichajes tácticos con GPS, control de horas, vehículos, gastos con IA y partes de voz para construcción.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f7f3ec",
-  "theme_color": "#f7f3ec",
-  "lang": "es",
+  "orientation": "portrait",
+  "background_color": "#1E2520",
+  "theme_color": "#1E2520",
+  "lang": "uk",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

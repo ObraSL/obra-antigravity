@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Blocks, Building2, ChevronRight, Clock, HardHat, KeyRound, Languages, LogOut, MapPin, Moon, Plus, ShieldAlert, Sun, Trash2, Truck, Users } from "lucide-react";
+import Link from "next/link";
+import { Blocks, Building2, ChevronRight, Clock, HardHat, KeyRound, Languages, LogOut, MapPin, Moon, Plus, Shield, ShieldAlert, Sun, Trash2, Truck, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
@@ -17,6 +18,7 @@ import { Accesos } from "@/components/ajustes/Accesos";
 import { SoporteAcceso } from "@/components/ajustes/SoporteAcceso";
 import { EliminarObra } from "@/components/ajustes/EliminarObra";
 import { ConfigurarObra } from "@/components/ajustes/ConfigurarObra";
+import { ModalEliminarCuenta } from "@/components/ajustes/ModalEliminarCuenta";
 import clsx from "clsx";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
 import { LISTA_MODULOS } from "@/lib/modulos";
@@ -48,6 +50,7 @@ function AjustesGestor() {
   const [jornadaTexto, setJornadaTexto] = useState<string>("");
   const [borrandoObra, setBorrandoObra] = useState<Obra | null>(null);
   const [configurandoObra, setConfigurandoObra] = useState<Obra | null>(null);
+  const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
 
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -362,12 +365,49 @@ function AjustesGestor() {
         </>
       )}
 
+      <SectionTitle icon={Shield} title={tr("Privacidad y seguridad")} />
+      <Card className="mb-7 p-4 space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-[13px]">
+          <div>
+            <div className="font-semibold text-obra-text">{tr("RGPD y cumplimiento legal")}</div>
+            <div className="text-[12px] text-obra-text-faint">{tr("Consulta cómo protegemos tus datos y los registros laborales de tu empresa.")}</div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0 pt-1 sm:pt-0">
+            <Link href="/privacidad" className="text-xs font-bold text-obra-yellow hover:underline">
+              {tr("Política de privacidad")}
+            </Link>
+            <span className="text-obra-line">·</span>
+            <Link href="/terminos" className="text-xs font-bold text-obra-yellow hover:underline">
+              {tr("Términos del servicio")}
+            </Link>
+          </div>
+        </div>
+        <div className="border-t border-obra-line pt-3 flex items-center justify-between">
+          <div>
+            <div className="text-[13px] font-semibold text-red-400">{tr("Zona de peligro")}</div>
+            <div className="text-[11.5px] text-obra-text-faint">Apple Guideline 5.1.1(v) · {tr("Eliminar cuenta")}</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEliminandoCuenta(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-950/20 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500/20 transition"
+          >
+            <Trash2 size={13} />
+            <span>{tr("Eliminar cuenta")}</span>
+          </button>
+        </div>
+      </Card>
+
       <button
         onClick={cerrarSesion}
         className="flex w-full items-center justify-center gap-2 rounded-xl border border-obra-line py-3 text-[13.5px] font-semibold text-obra-text-faint md:hidden"
       >
         <LogOut size={16} /> {tr("Cerrar sesión")}
       </button>
+
+      {eliminandoCuenta && (
+        <ModalEliminarCuenta onClose={() => setEliminandoCuenta(false)} />
+      )}
 
       {borrandoObra && (
         <Sheet title={tr("Borrar obra")} onClose={() => setBorrandoObra(null)}>
@@ -401,6 +441,7 @@ function AjustesTrabajador() {
   const router = useRouter();
   const { miembro } = useMiembro();
   const { tema, alternarTema } = useTema();
+  const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
 
   const cerrarSesion = async () => {
     await createClient().auth.signOut();
@@ -450,12 +491,49 @@ function AjustesTrabajador() {
         </button>
       </Card>
 
+      <SectionTitle icon={Shield} title={tr("Privacidad y seguridad")} />
+      <Card className="mb-7 p-4 space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-[13px]">
+          <div>
+            <div className="font-semibold text-obra-text">{tr("RGPD y cumplimiento legal")}</div>
+            <div className="text-[12px] text-obra-text-faint">{tr("Consulta cómo protegemos tus datos y los registros laborales de tu empresa.")}</div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0 pt-1 sm:pt-0">
+            <Link href="/privacidad" className="text-xs font-bold text-obra-yellow hover:underline">
+              {tr("Política de privacidad")}
+            </Link>
+            <span className="text-obra-line">·</span>
+            <Link href="/terminos" className="text-xs font-bold text-obra-yellow hover:underline">
+              {tr("Términos del servicio")}
+            </Link>
+          </div>
+        </div>
+        <div className="border-t border-obra-line pt-3 flex items-center justify-between">
+          <div>
+            <div className="text-[13px] font-semibold text-red-400">{tr("Zona de peligro")}</div>
+            <div className="text-[11.5px] text-obra-text-faint">Apple Guideline 5.1.1(v) · {tr("Eliminar mi cuenta")}</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEliminandoCuenta(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-950/20 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500/20 transition"
+          >
+            <Trash2 size={13} />
+            <span>{tr("Eliminar mi cuenta")}</span>
+          </button>
+        </div>
+      </Card>
+
       <button
         onClick={cerrarSesion}
         className="flex w-full items-center justify-center gap-2 rounded-xl border border-obra-line py-3 text-[13.5px] font-semibold text-obra-text-faint"
       >
         <LogOut size={16} /> {tr("Cerrar sesión")}
       </button>
+
+      {eliminandoCuenta && (
+        <ModalEliminarCuenta onClose={() => setEliminandoCuenta(false)} />
+      )}
     </div>
   );
 }

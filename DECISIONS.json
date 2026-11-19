@@ -101,6 +101,24 @@
         "name": "Multilingual AI Site Journal with Auto-Translation and Structured Action Items Extraction (Comprar, Extra Cliente, Incidencia, Progreso)",
         "component": "app/api/ia/audio/route.ts, app/(dashboard)/notas/page.tsx, components/inicio/InicioTrabajador.tsx",
         "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "LEGAL_PRIVACY_AND_TERMS",
+        "name": "Public GDPR/LOPDGDD & Apple Guideline 5.1.1 Privacy Policy and SaaS B2B Terms of Service",
+        "component": "app/privacidad/page.tsx, app/terminos/page.tsx, lib/supabase/middleware.ts",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "ACCOUNT_DELETION_APPLE_5_1_1",
+        "name": "In-App Self-Service Account & Data Deletion Flow with Danger Zone Modal and Safe Demo Fallback",
+        "component": "app/api/usuario/eliminar-cuenta/route.ts, components/ajustes/ModalEliminarCuenta.tsx, app/(dashboard)/ajustes/page.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "IOS_APP_STORE_PERMISSIONS",
+        "name": "Apple App Review Compliant Permissions Specification (Camera, Microphone, GPS at Clock-in, Photo Library) and Slate Manifest",
+        "component": "_pack/ios/Info.plist, public/manifest.webmanifest",
+        "status": "FROZEN_APPROVED"
       }
     ],
     "verification_gallery": {
