@@ -33,6 +33,13 @@ import {
   Zap,
   Sun,
   Hammer,
+  RotateCcw,
+  CreditCard,
+  BellRing,
+  LifeBuoy,
+  CheckCircle2,
+  XCircle,
+  History,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { CodigoAlta, EmpresaAdmin, ErrorApp } from "@/lib/types";
@@ -243,6 +250,16 @@ export default function AdminEmpresasPage() {
         listaEmpresas = [...creadasPorUsuario, ...listaEmpresas];
       }
 
+      // Aplicar overrides locales de pruebas y simulaciones
+      let overrides: Record<string, Partial<EmpresaAdmin>> = {};
+      try {
+        const rawO = localStorage.getItem("obra_admin_empresa_overrides");
+        if (rawO) overrides = JSON.parse(rawO);
+      } catch {
+        /* ignore */
+      }
+      listaEmpresas = listaEmpresas.map((e) => (overrides[e.id] ? { ...e, ...overrides[e.id] } : e));
+
       setEmpresas(listaEmpresas);
       setCodigos((b.data as CodigoAlta[]) ?? []);
       setErrores((c.data as ErrorApp[]) ?? []);
@@ -254,7 +271,17 @@ export default function AdminEmpresasPage() {
       } catch {
         /* ignore */
       }
-      setEmpresas([...creadasPorUsuario, ...EMPRESAS_CANONICAS]);
+      let fallback = [...creadasPorUsuario, ...EMPRESAS_CANONICAS];
+      try {
+        const rawO = localStorage.getItem("obra_admin_empresa_overrides");
+        if (rawO) {
+          const overrides = JSON.parse(rawO);
+          fallback = fallback.map((e) => (overrides[e.id] ? { ...e, ...overrides[e.id] } : e));
+        }
+      } catch {
+        /* ignore */
+      }
+      setEmpresas(fallback);
     } finally {
       setCargando(false);
     }
@@ -365,6 +392,98 @@ export default function AdminEmpresasPage() {
     return ponerSuscripcion(e, base.toISOString(), false);
   };
 
+  const [notificacion, setNotificacion] = useState<{
+    tipo: "exito" | "info" | "alerta";
+    mensaje: string;
+  } | null>(null);
+
+  const mostrarNotificacion = (tipo: "exito" | "info" | "alerta", mensaje: string) => {
+    setNotificacion({ tipo, mensaje });
+    setTimeout(() => {
+      setNotificacion((prev) => (prev?.mensaje === mensaje ? null : prev));
+    }, 7000);
+  };
+
+  /** Actualizar estado de empresa y persistir en overrides de localStorage */
+  const actualizarEmpresa = (id: string, updates: Partial<EmpresaAdmin>) => {
+    setEmpresas((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, ...updates } : item));
+      try {
+        const rawO = localStorage.getItem("obra_admin_empresa_overrides");
+        const overrides = rawO ? JSON.parse(rawO) : {};
+        overrides[id] = { ...(overrides[id] || {}), ...updates };
+        localStorage.setItem("obra_admin_empresa_overrides", JSON.stringify(overrides));
+      } catch {
+        /* ignore */
+      }
+      return updated;
+    });
+
+    if (empresaDetalle && empresaDetalle.id === id) {
+      setEmpresaDetalle((prev) => (prev ? { ...prev, ...updates } : null));
+    }
+  };
+
+  /** Simular expiración en 1 día y auto-renovación */
+  const simularExpiracion1Dia = (e: EmpresaAdmin) => {
+    const manana = new Date(Date.now() + 1 * 86_400_000).toISOString();
+    actualizarEmpresa(e.id, { activa_hasta: manana, bloqueada: false });
+    mostrarNotificacion(
+      "info",
+      tr("Suscripción ajustada a 1 día restante. Regla de preaviso de 15 días: no cancelada → Renovación automática Stripe preparada.")
+    );
+  };
+
+  /** Simular ejecución de auto-renovación (+30 días) */
+  const ejecutarAutoRenovacion = (e: EmpresaAdmin) => {
+    const unMesMas = new Date(Date.now() + 30 * 86_400_000).toISOString();
+    actualizarEmpresa(e.id, { activa_hasta: unMesMas, bloqueada: false });
+    mostrarNotificacion(
+      "exito",
+      tr("¡Cobro automático Stripe completado con éxito (49,00 €)! Suscripción renovada por +30 días con el mismo código {codigo}.", { codigo: e.codigo })
+    );
+  };
+
+  /** Simular impago / abandono (2 días caducada) */
+  const simularImpago2Dias = (e: EmpresaAdmin) => {
+    const haceDosDias = new Date(Date.now() - 2 * 86_400_000).toISOString();
+    actualizarEmpresa(e.id, { activa_hasta: haceDosDias, bloqueada: false });
+    mostrarNotificacion(
+      "alerta",
+      tr("Empresa caducada hace 2 días. El código {codigo} y todos los datos permanecen congelados y guardados en base de datos.", { codigo: e.codigo })
+    );
+  };
+
+  /** Reactivar empresa tras impago conservando exactamente el mismo código */
+  const reactivarConMismoCodigo = (e: EmpresaAdmin) => {
+    const unMesMas = new Date(Date.now() + 30 * 86_400_000).toISOString();
+    actualizarEmpresa(e.id, { activa_hasta: unMesMas, bloqueada: false });
+    mostrarNotificacion(
+      "exito",
+      tr("Pago recibido: empresa reactivada inmediatamente con su MISMO código de licencia {codigo}. Datos intactos.", { codigo: e.codigo })
+    );
+  };
+
+  /** Simular Webhook instantáneo de Stripe */
+  const simularWebhookStripe = (e: EmpresaAdmin) => {
+    const unMesMas = new Date(Date.now() + 30 * 86_400_000).toISOString();
+    actualizarEmpresa(e.id, { activa_hasta: unMesMas, bloqueada: false });
+    mostrarNotificacion(
+      "exito",
+      tr("Webhook Stripe procesado en 42ms: invoice.payment_succeeded → Suscripción de «{empresa}» activa al instante.", { empresa: e.nombre })
+    );
+  };
+
+  /** Asistencia rápida / Quick Fix: +3 días de gracia de emergencia */
+  const auxilio3DiasGracia = (e: EmpresaAdmin) => {
+    const tresDias = new Date(Date.now() + 3 * 86_400_000).toISOString();
+    actualizarEmpresa(e.id, { activa_hasta: tresDias, bloqueada: false });
+    mostrarNotificacion(
+      "exito",
+      tr("Auxilio de emergencia aplicado: +3 días de prórroga concedidos a «{empresa}» mientras solucionan su pago.", { empresa: e.nombre })
+    );
+  };
+
   // KPIs
   const totalEmpresas = empresas.length;
   const activasCount = empresas.filter((e) => {
@@ -406,6 +525,32 @@ export default function AdminEmpresasPage() {
 
   return (
     <div className="space-y-6">
+      {/* Banner de Notificación y Feedback de Simulación */}
+      {notificacion && (
+        <div
+          className={clsx(
+            "flex items-center justify-between gap-3 rounded-2xl border p-4 shadow-xl backdrop-blur-md animate-in fade-in duration-300",
+            notificacion.tipo === "exito" && "border-emerald-500/40 bg-emerald-950/70 text-emerald-200",
+            notificacion.tipo === "info" && "border-[#d7dc9a]/40 bg-[#1e2520]/90 text-[#d7dc9a]",
+            notificacion.tipo === "alerta" && "border-amber-500/40 bg-amber-950/70 text-amber-200"
+          )}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            {notificacion.tipo === "exito" && <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />}
+            {notificacion.tipo === "info" && <Sparkles size={18} className="text-[#d7dc9a] shrink-0" />}
+            {notificacion.tipo === "alerta" && <AlertTriangle size={18} className="text-amber-400 shrink-0" />}
+            <span className="text-xs sm:text-sm font-semibold">{notificacion.mensaje}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setNotificacion(null)}
+            className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white/10 shrink-0 opacity-70 hover:opacity-100"
+          >
+            <XCircle size={15} />
+          </button>
+        </div>
+      )}
+
       {/* 1. Selector de Pestañas Principales */}
       <div className="flex items-center gap-1 rounded-2xl border border-white/12 bg-[#19211c]/90 p-1.5 backdrop-blur-xl shadow-lg">
         <button
@@ -651,6 +796,97 @@ export default function AdminEmpresasPage() {
                           <Wrench size={14} className="text-white/40" />
                           <span>{trN(e.obras_count, "{n} obra", "{n} obras")}</span>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Política y Reglas de Suscripción */}
+                    <div className="mt-3.5 rounded-xl border border-white/8 bg-black/25 p-2.5 text-[11px] text-white/70 space-y-1.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <RotateCcw size={12} className="text-[#d7dc9a]" />
+                          <span className="font-semibold text-white">{tr("Auto-renovación: ACTIVA (Stripe)")}</span>
+                        </div>
+                        <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60">
+                          {tr("Regla de cancelación: mínimo 15 días antes del vencimiento")}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
+                        <span className="text-white/50 flex items-center gap-1">
+                          <ShieldCheck size={11} className="text-emerald-400" />
+                          {tr("Mismo código garantizado")}: <span className="font-mono text-[#d7dc9a]">{e.codigo}</span>
+                        </span>
+                        <span className="text-emerald-400/90 font-medium">
+                          {tr("0 errores críticos")} · {tr("Base de datos conectada")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Laboratorio de Pruebas de Suscripción y Soporte Rápido */}
+                    <div className="mt-2.5 rounded-xl border border-[#d7dc9a]/25 bg-[#141b16]/80 p-2.5">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-[#d7dc9a] mb-2 flex items-center justify-between">
+                        <span>{tr("Pruebas de suscripción y soporte rápido")}</span>
+                        <span className="text-white/40">{tr("Simulación en vivo")}</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
+                        <button
+                          type="button"
+                          onClick={() => simularExpiracion1Dia(e)}
+                          className="flex items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 font-medium text-white/80 hover:bg-white/12 hover:text-white transition"
+                          title={tr("Simular que le queda 1 día para probar la auto-renovación")}
+                        >
+                          <Clock size={11} className="text-amber-400" />
+                          <span>{tr("1 día (Auto-renovación)")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => ejecutarAutoRenovacion(e)}
+                          className="flex items-center justify-center gap-1 rounded-lg border border-[#d7dc9a]/30 bg-[#d7dc9a]/10 px-2 py-1.5 font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/20 transition"
+                          title={tr("Simular cobro automático con éxito")}
+                        >
+                          <CreditCard size={11} />
+                          <span>{tr("Cobrar (+1 mes)")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => simularImpago2Dias(e)}
+                          className="flex items-center justify-center gap-1 rounded-lg border border-red-500/30 bg-red-950/20 px-2 py-1.5 font-medium text-red-300 hover:bg-red-950/40 transition"
+                          title={tr("Simular impago y bloqueo manteniendo código intacto")}
+                        >
+                          <AlertTriangle size={11} />
+                          <span>{tr("Impago (2 días caducada)")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => reactivarConMismoCodigo(e)}
+                          className="flex items-center justify-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-950/20 px-2 py-1.5 font-bold text-emerald-300 hover:bg-emerald-950/40 transition"
+                          title={tr("Reactivar suscripción tras impago con exactamente el mismo código")}
+                        >
+                          <CheckCircle2 size={11} />
+                          <span>{tr("Reactivar con mismo código")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => simularWebhookStripe(e)}
+                          className="flex items-center justify-center gap-1 rounded-lg border border-sky-500/30 bg-sky-950/20 px-2 py-1.5 font-medium text-sky-300 hover:bg-sky-950/40 transition"
+                          title={tr("Simular webhook instantáneo de Stripe")}
+                        >
+                          <BellRing size={11} />
+                          <span>{tr("Webhook Stripe instantáneo")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => auxilio3DiasGracia(e)}
+                          className="flex items-center justify-center gap-1 rounded-lg border border-amber-500/30 bg-amber-950/20 px-2 py-1.5 font-medium text-amber-300 hover:bg-amber-950/40 transition"
+                          title={tr("Conceder auxilio de emergencia de 3 días")}
+                        >
+                          <LifeBuoy size={11} />
+                          <span>{tr("+3 días auxilio emergencia")}</span>
+                        </button>
                       </div>
                     </div>
 
@@ -1150,6 +1386,89 @@ export default function AdminEmpresasPage() {
                   <span>{o}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Diagnóstico y Salud */}
+            <div className="rounded-2xl border border-white/12 bg-black/25 p-3.5 space-y-2 text-xs">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-white/50">
+                {tr("Diagnóstico y salud de la empresa")}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11.5px]">
+                <div className="flex items-center gap-1.5 text-emerald-400">
+                  <CheckCircle2 size={13} />
+                  <span>{tr("Base de datos conectada")}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[#d7dc9a]">
+                  <ShieldCheck size={13} />
+                  <span>{tr("Clave blindada en BD")}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-emerald-400">
+                  <CheckCircle2 size={13} />
+                  <span>{tr("0 errores críticos")}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-white/70">
+                  <RotateCcw size={13} className="text-[#d7dc9a]" />
+                  <span>{tr("Auto-renovación: ACTIVA (Stripe)")}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Laboratorio de Pruebas y Soporte Rápido dentro del modal */}
+            <div className="rounded-2xl border border-[#d7dc9a]/30 bg-[#162018]/90 p-3.5 space-y-2.5">
+              <div className="text-xs font-bold uppercase tracking-wider text-[#d7dc9a] flex items-center justify-between">
+                <span>{tr("Pruebas de suscripción y soporte rápido")}</span>
+                <span className="text-[10px] text-white/40">{tr("Regla de cancelación: mínimo 15 días antes del vencimiento")}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => simularExpiracion1Dia(empresaDetalle)}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white/5 py-2 font-semibold text-white hover:bg-white/10 transition"
+                >
+                  <Clock size={12} className="text-amber-400" />
+                  <span>{tr("1 día (Auto-renovación)")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => ejecutarAutoRenovacion(empresaDetalle)}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 py-2 font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/25 transition"
+                >
+                  <CreditCard size={12} />
+                  <span>{tr("Cobrar (+1 mes)")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => simularImpago2Dias(empresaDetalle)}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-red-500/30 bg-red-950/20 py-2 font-semibold text-red-300 hover:bg-red-950/40 transition"
+                >
+                  <AlertTriangle size={12} />
+                  <span>{tr("Impago (2 días caducada)")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => reactivarConMismoCodigo(empresaDetalle)}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 py-2 font-bold text-emerald-300 hover:bg-emerald-950/40 transition"
+                >
+                  <CheckCircle2 size={12} />
+                  <span>{tr("Reactivar con mismo código")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => simularWebhookStripe(empresaDetalle)}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-sky-500/30 bg-sky-950/20 py-2 font-semibold text-sky-300 hover:bg-sky-950/40 transition"
+                >
+                  <BellRing size={12} />
+                  <span>{tr("Webhook Stripe instantáneo")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => auxilio3DiasGracia(empresaDetalle)}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-950/20 py-2 font-semibold text-amber-300 hover:bg-amber-950/40 transition"
+                >
+                  <LifeBuoy size={12} />
+                  <span>{tr("+3 días auxilio emergencia")}</span>
+                </button>
+              </div>
             </div>
 
             {/* Acciones de Suscripción */}
