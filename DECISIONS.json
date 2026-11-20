@@ -61,9 +61,33 @@
         "status": "FROZEN_APPROVED"
       },
       {
-        "id": "SUN_MODE",
-        "name": "Sun Mode High-Contrast Light Theme for Outdoor Sunlight",
-        "component": "lib/tema.ts & lib/tema-provider.tsx",
+        "id": "UNIFIED_OBSIDIAN_SLATE_THEME",
+        "name": "Single Enterprise Dark Slate Theme (#1E2520) with Lime (#D7DC9A) Accents (Removed Sun Mode for pristine consistency)",
+        "component": "components/layout/TopBar.tsx & app/(dashboard)/ajustes/page.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "USER_PROFILE_AND_PHOTO_SYNC",
+        "name": "User Profile Name Editing & Dynamic Avatar Photo Upload with Reactive TopBar Sync",
+        "component": "components/ajustes/PerfilUsuario.tsx, components/layout/TopBar.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "COMPACT_LANGUAGE_DROPDOWN",
+        "name": "Compact Flag & Code Language Selector Dropdown (Ukrainian, Spanish, English)",
+        "component": "components/ui/SelectorIdioma.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "WORKER_RATES_AND_EARNINGS",
+        "name": "Worker Payment Rates (€/h vs €/day) with Company Toggle and Estimated Monthly Earnings Display",
+        "component": "lib/types.ts, lib/modulos.ts, app/(dashboard)/ajustes/page.tsx, components/fichajes/MiFichaje.tsx, components/inicio/InicioTrabajador.tsx",
+        "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "STREAMLINED_WORKER_CLOCKIN",
+        "name": "Top-Ranked Tactical Clock-In Block with Collapsed Calendar Accordion",
+        "component": "components/fichajes/MiFichaje.tsx, components/fichajes/CalendarioMes.tsx",
         "status": "FROZEN_APPROVED"
       },
       {
