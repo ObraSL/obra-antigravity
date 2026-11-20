@@ -826,4 +826,9 @@ export const uk: Record<string, string> = {
   "Teléfono": "Телефон",
   "Trabajadores y obras": "Робітники та об'єкти",
   "Volver a /admin": "Повернутися в /admin",
+  "Abrir /admin": "Відкрити /admin",
+  "Consola Admin": "Адмін-консоль",
+  "Consola de Administración": "Консоль адміністрування",
+  "Consola de Administración de la Plataforma": "Консоль адміністрування платформи",
+  "Gestiona las 3 empresas de prueba, códigos de licencia y suscripciones.": "Керуйте 3 тестовими компаніями, ліцензійними кодами та підписками.",
 };

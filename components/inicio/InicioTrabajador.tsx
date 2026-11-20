@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Clock, LogIn, LogOut, MapPin, Mic } from "lucide-react";
+import { ArrowRight, Clock, LogIn, LogOut, MapPin, Mic, ShieldCheck } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
 import { createClient } from "@/lib/supabase/client";
@@ -86,6 +86,26 @@ export function InicioTrabajador() {
 
   return (
     <div className="space-y-3.5 pb-28">
+      {/* Banner de acceso a la Consola de Administración */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[#d7dc9a]/35 bg-[#17201a]/90 p-3.5 backdrop-blur-md shadow-md">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d7dc9a]/18 text-[#d7dc9a]">
+            <ShieldCheck size={18} strokeWidth={2.3} />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-white">{tr("Consola de Administración de la Plataforma")}</div>
+            <div className="text-[11px] text-white/65">{tr("Gestiona las 3 empresas de prueba, códigos de licencia y suscripciones.")}</div>
+          </div>
+        </div>
+        <Link
+          href="/admin"
+          className="flex items-center justify-center gap-1.5 rounded-xl bg-[#d7dc9a] px-3.5 py-2 text-xs font-bold text-[#141a16] shadow transition hover:bg-[#c8cd8b] active:scale-95 shrink-0"
+        >
+          <span>{tr("Abrir /admin")}</span>
+          <ArrowRight size={13} />
+        </Link>
+      </div>
+
       {/* Cabecera con datos de la obra */}
       <div className="mb-2 px-1">
         <h1 className="text-[20px] font-bold uppercase tracking-tight text-white">

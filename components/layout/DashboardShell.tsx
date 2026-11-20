@@ -2,7 +2,9 @@
 
 import { ViewTransition } from "react";
 import { usePathname } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Loader2, ShieldCheck } from "lucide-react";
+import { tr } from "@/lib/i18n";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
 import { Sidebar } from "./Sidebar";
@@ -53,6 +55,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </PullToRefresh>
           )}
         </main>
+        {/* Botón flotante siempre visible para saltar a la Consola de Administración */}
+        <div className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-6">
+          <Link
+            href="/admin"
+            className="flex items-center gap-2 rounded-full border border-[#d7dc9a]/40 bg-[#141a16]/95 px-3.5 py-2 text-xs font-bold text-[#d7dc9a] shadow-2xl backdrop-blur-md transition hover:bg-[#1c241f] hover:scale-105 active:scale-95"
+            title={tr("Panel de administración")}
+          >
+            <ShieldCheck size={16} strokeWidth={2.4} />
+            <span className="tracking-tight">{tr("Consola Admin")}</span>
+          </Link>
+        </div>
         {obras.length > 0 && <BottomNav />}
         <ModalConsentimientoLegal />
       </div>

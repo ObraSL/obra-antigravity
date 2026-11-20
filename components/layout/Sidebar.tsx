@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import clsx from "clsx";
 import { navLateral, tipoSalto } from "@/lib/nav";
 import { useMiembro } from "@/lib/miembro-context";
@@ -31,6 +31,16 @@ export function Sidebar() {
           {tr("Control de Obra")}
         </div>
       </Link>
+
+      <div className="px-3 pb-3">
+        <Link
+          href="/admin"
+          className="flex items-center gap-2.5 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 px-3 py-2 text-[13px] font-bold text-[#d7dc9a] transition hover:bg-[#d7dc9a]/25 shadow-sm"
+        >
+          <ShieldCheck size={17} strokeWidth={2.4} />
+          <span>{tr("Consola de Administración")}</span>
+        </Link>
+      </div>
 
       <nav className="flex-1 px-3">
         {items.map((item) => {

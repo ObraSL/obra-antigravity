@@ -808,4 +808,9 @@ export const en: Record<string, string> = {
   "Teléfono": "Phone",
   "Trabajadores y obras": "Workers and projects",
   "Volver a /admin": "Back to /admin",
+  "Abrir /admin": "Open /admin",
+  "Consola Admin": "Admin Console",
+  "Consola de Administración": "Administration Console",
+  "Consola de Administración de la Plataforma": "Platform Administration Console",
+  "Gestiona las 3 empresas de prueba, códigos de licencia y suscripciones.": "Manage the 3 test companies, license codes, and subscriptions.",
 };

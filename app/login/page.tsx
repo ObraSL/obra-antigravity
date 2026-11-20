@@ -107,14 +107,36 @@ function LoginPageInterior() {
     [supabase, router]
   );
 
+  const iniciarComoAdmin = useCallback(async () => {
+    setError("");
+    setAviso("");
+    setCargando(true);
+    const { error: err } = await supabase.auth.signInWithPassword({
+      email: "demo@obrasl.com",
+      password: "ObraDemo2026!",
+    });
+    if (err) {
+      setError(err.message);
+      setCargando(false);
+      return;
+    }
+    localStorage.setItem(EMAIL_RECORDADO, "demo@obrasl.com");
+    localStorage.setItem("obra_admin_autorizado", "true");
+    router.push("/admin");
+    router.refresh();
+  }, [supabase, router]);
+
   useEffect(() => {
     const d = params.get("demo");
-    if (d === "1" || d === "dueno") {
+    const a = params.get("admin");
+    if (a === "1") {
+      iniciarComoAdmin();
+    } else if (d === "1" || d === "dueno") {
       iniciarComoDemo("dueno");
     } else if (d === "trabajador" || d === "worker") {
       iniciarComoDemo("trabajador");
     }
-  }, [params, iniciarComoDemo]);
+  }, [params, iniciarComoDemo, iniciarComoAdmin]);
 
   const cambiarModo = (m: typeof modo) => {
     setModo(m);
@@ -376,48 +398,51 @@ function LoginPageInterior() {
           </button>
         )}
 
-        {/* Acceso rápido de demostración en 1 clic: Dueño vs Trabajador */}
-        <div className="relative mt-4 rounded-2xl border border-white/14 bg-[#141a16]/80 p-3.5 text-center">
+        {/* Acceso rápido de demostración en 1 clic: Superadmin vs Dueño vs Trabajador */}
+        <div className="relative mt-4 rounded-2xl border border-[#d7dc9a]/35 bg-[#141a16]/90 p-4 text-center shadow-lg">
           <div className="text-[11px] font-bold uppercase tracking-wider text-[#d7dc9a]">
             {tr("Acceso de prueba")}
           </div>
-          <div className="mt-2.5 grid grid-cols-2 gap-2">
+
+          {/* BOTÓN PRINCIPAL: Acceso directo a Superadmin */}
+          <button
+            type="button"
+            onClick={iniciarComoAdmin}
+            disabled={cargando}
+            className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#d7dc9a] px-3.5 py-2.5 text-xs sm:text-sm font-bold text-[#141a16] shadow-md transition hover:bg-[#c8cd8b] active:scale-[0.98]"
+          >
+            {cargando ? <Loader2 size={15} className="animate-spin" /> : <ShieldCheck size={16} />}
+            <span>{tr("Acceder a la Consola de Administración")}</span>
+          </button>
+
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => iniciarComoDemo("dueno")}
               disabled={cargando}
-              className="flex min-h-[46px] flex-col items-center justify-center rounded-[14px] border border-[#d7dc9a]/40 bg-[#d7dc9a]/16 px-2.5 py-1.5 text-center transition hover:bg-[#d7dc9a]/25 active:scale-[0.98]"
+              className="flex min-h-[44px] flex-col items-center justify-center rounded-[12px] border border-white/20 bg-white/10 px-2 py-1.5 text-center transition hover:bg-white/16 active:scale-[0.98]"
             >
-              <span className="text-[12px] font-bold text-[#d7dc9a] flex items-center gap-1">
-                {cargando ? <Loader2 size={13} className="animate-spin" /> : <ShieldCheck size={13} />}
+              <span className="text-[11.5px] font-bold text-white flex items-center gap-1">
+                {cargando ? <Loader2 size={12} className="animate-spin" /> : <ShieldCheck size={12} />}
                 {tr("Demo Dueño")}
               </span>
-              <span className="text-[10px] text-white/65">{tr("Control total")}</span>
+              <span className="text-[9.5px] text-white/60">{tr("Control total")}</span>
             </button>
             <button
               type="button"
               onClick={() => iniciarComoDemo("trabajador")}
               disabled={cargando}
-              className="flex min-h-[46px] flex-col items-center justify-center rounded-[14px] border border-white/20 bg-white/10 px-2.5 py-1.5 text-center transition hover:bg-white/16 active:scale-[0.98]"
+              className="flex min-h-[44px] flex-col items-center justify-center rounded-[12px] border border-white/20 bg-white/10 px-2 py-1.5 text-center transition hover:bg-white/16 active:scale-[0.98]"
             >
-              <span className="text-[12px] font-bold text-white flex items-center gap-1">
-                {cargando ? <Loader2 size={13} className="animate-spin" /> : <HardHat size={13} />}
+              <span className="text-[11.5px] font-bold text-white flex items-center gap-1">
+                {cargando ? <Loader2 size={12} className="animate-spin" /> : <HardHat size={12} />}
                 {tr("Demo Trabajador")}
               </span>
-              <span className="text-[10px] text-white/65">{tr("Fichaje y horas")}</span>
+              <span className="text-[9.5px] text-white/60">{tr("Fichaje y horas")}</span>
             </button>
           </div>
           <div className="mt-2 text-[10px] text-white/60">
             <span className="font-mono text-[#d7dc9a]">demo@obrasl.com</span> · <span className="font-mono text-[#d7dc9a]">trabajador@obrasl.com</span>
-          </div>
-          <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-center">
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#d7dc9a] hover:underline"
-            >
-              <ShieldCheck size={13} />
-              <span>{tr("Acceder a la Consola de Administración")}</span>
-            </Link>
           </div>
         </div>
       </div>
