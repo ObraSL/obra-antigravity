@@ -36,6 +36,9 @@ export type EmpresaAdmin = {
   bloqueada: boolean;
   /** Código de alta con el que se creó (null si es anterior a los códigos). */
   codigo_alta: string | null;
+  email_contacto?: string | null;
+  telefono_contacto?: string | null;
+  responsable_nombre?: string | null;
 };
 
 /** Un fallo guardado en errores_app (solo lo ve el admin de la plataforma). */

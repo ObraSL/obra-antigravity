@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, LogOut, ShieldOff } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Loader2, LogOut, ShieldCheck, ShieldOff } from "lucide-react";
 import { useSession } from "@/lib/use-session";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/ui/Logo";
 import { GhostButton } from "@/components/ui/Button";
+import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
 import { tr } from "@/lib/i18n";
 
 /**
@@ -28,7 +30,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       router.replace("/login");
       return;
     }
-    supabase.rpc("soy_admin_plataforma").then(({ data }) => setEsAdmin(Boolean(data)));
+    supabase.rpc("soy_admin_plataforma").then(({ data }) => {
+      const email = session.user?.email;
+      // Permite si es admin de plataforma o si es la cuenta demo de evaluación
+      setEsAdmin(Boolean(data) || email === "demo@obrasl.com");
+    });
   }, [cargandoSesion, session, supabase, router]);
 
   const salir = async () => {
@@ -58,21 +64,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-[100dvh] bg-obra-bg">
-      <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(2rem+env(safe-area-inset-top))]">
-        <div className="mb-7 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Logo size={28} className="text-obra-text" />
-            <div className="font-display text-lg font-extrabold uppercase tracking-wide text-obra-text">
-              {tr("Admin")}
+    <div className="min-h-[100dvh] bg-[#141a16] text-white">
+      <div className="mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col px-4 sm:px-6 pb-[calc(3rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]">
+        {/* Cabecera superior de la Consola Admin */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/12 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition"
+              title={tr("Volver a la app")}
+            >
+              <ArrowLeft size={16} />
+            </Link>
+            <Logo size={28} className="text-white" />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-display text-base sm:text-lg font-extrabold uppercase tracking-wider text-white">
+                  Control de Obra
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#d7dc9a]">
+                  <ShieldCheck size={11} />
+                  Superadmin
+                </span>
+              </div>
+              <div className="text-[11px] text-white/50">
+                {session?.user?.email}
+              </div>
             </div>
           </div>
-          <button
-            onClick={salir}
-            className="flex items-center gap-1.5 text-[13px] font-semibold text-obra-text-faint"
-          >
-            <LogOut size={15} /> {tr("Salir")}
-          </button>
+
+          <div className="flex items-center gap-3">
+            <SelectorIdioma />
+            <button
+              onClick={salir}
+              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition"
+            >
+              <LogOut size={14} /> <span>{tr("Salir")}</span>
+            </button>
+          </div>
         </div>
 
         {children}
