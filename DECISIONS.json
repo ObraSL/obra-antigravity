@@ -149,6 +149,12 @@
         "name": "User Legal Consent Onboarding & Disclaimer Modal (Mic, GPS, AS IS liability exclusion, hold harmless)",
         "component": "components/legal/ModalConsentimientoLegal.tsx, app/terminos/page.tsx, components/layout/AvisoControl.tsx, app/(dashboard)/ajustes/page.tsx",
         "status": "FROZEN_APPROVED"
+      },
+      {
+        "id": "SUPERADMIN_CONSOLE",
+        "name": "Platform Superadmin Console (/admin) with Persistent Company Keys, Filterable Company Roster, Activation Code Generator and Error Log",
+        "component": "app/admin/layout.tsx, app/admin/page.tsx",
+        "status": "FROZEN_APPROVED"
       }
     ],
     "verification_gallery": {
