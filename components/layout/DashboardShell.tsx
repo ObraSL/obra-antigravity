@@ -12,6 +12,7 @@ import { SinObras } from "./SinObras";
 import { SinObrasAsignadas } from "./SinObrasAsignadas";
 import { PullToRefresh } from "./PullToRefresh";
 import { ModalConsentimientoLegal } from "@/components/legal/ModalConsentimientoLegal";
+import { BannerModoAdmin } from "@/components/admin/BannerModoAdmin";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -27,6 +28,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           página y en el iPhone se podía arrastrar de lado. Sin esto, el
           arreglo del rebote no sirve de nada. */}
       <div className="flex min-h-[100dvh] min-w-0 flex-1 flex-col">
+        <BannerModoAdmin />
         <TopBar />
         <main className="flex-1 pb-6">
           {loading ? (

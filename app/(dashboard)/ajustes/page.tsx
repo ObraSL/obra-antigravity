@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Blocks, Building2, ChevronRight, Clock, Coins, HardHat, KeyRound, Languages, LogOut, MapPin, Plus, Scale, Shield, ShieldAlert, Trash2, Truck, UserCheck, Users } from "lucide-react";
+import { Blocks, Building2, ChevronRight, Clock, Coins, HardHat, KeyRound, Languages, LogOut, MapPin, Plus, Scale, Shield, ShieldAlert, ShieldCheck, Trash2, Truck, UserCheck, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
@@ -141,6 +141,28 @@ function AjustesGestor() {
     <div>
       <SectionTitle icon={UserCheck} title={tr("Mi cuenta y perfil")} />
       <PerfilUsuario />
+
+      <SectionTitle icon={ShieldCheck} title={tr("Administración de la plataforma")} />
+      <Card className="mb-7 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-[#d7dc9a]/30 bg-gradient-to-r from-[#1b231c] to-[#141a16]">
+        <div>
+          <div className="text-[14.5px] font-bold text-white flex items-center gap-1.5">
+            <span>{tr("Consola Superadmin")}</span>
+            <span className="rounded-full bg-[#d7dc9a]/20 px-2 py-0.5 text-[10px] font-bold text-[#d7dc9a] uppercase">
+              /admin
+            </span>
+          </div>
+          <div className="text-[12px] text-white/65 mt-0.5">
+            {tr("Gestión global de empresas, licencias, códigos y errores")}
+          </div>
+        </div>
+        <Link
+          href="/admin"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#d7dc9a] px-4 py-2.5 text-xs font-bold text-[#141a16] shadow-md transition hover:bg-[#c8cd8b] active:scale-95 shrink-0"
+        >
+          <span>{tr("Entrar a /admin")}</span>
+          <ChevronRight size={14} />
+        </Link>
+      </Card>
 
       <SectionTitle icon={Languages} title={tr("Idioma")} />
       <div className="mb-7">
@@ -575,6 +597,28 @@ function AjustesTrabajador() {
     <div>
       <SectionTitle icon={UserCheck} title={tr("Mi cuenta y perfil")} />
       <PerfilUsuario />
+
+      <SectionTitle icon={ShieldCheck} title={tr("Administración de la plataforma")} />
+      <Card className="mb-7 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-[#d7dc9a]/30 bg-gradient-to-r from-[#1b231c] to-[#141a16]">
+        <div>
+          <div className="text-[14.5px] font-bold text-white flex items-center gap-1.5">
+            <span>{tr("Consola Superadmin")}</span>
+            <span className="rounded-full bg-[#d7dc9a]/20 px-2 py-0.5 text-[10px] font-bold text-[#d7dc9a] uppercase">
+              /admin
+            </span>
+          </div>
+          <div className="text-[12px] text-white/65 mt-0.5">
+            {tr("Gestión global de empresas, licencias, códigos y errores")}
+          </div>
+        </div>
+        <Link
+          href="/admin"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#d7dc9a] px-4 py-2.5 text-xs font-bold text-[#141a16] shadow-md transition hover:bg-[#c8cd8b] active:scale-95 shrink-0"
+        >
+          <span>{tr("Entrar a /admin")}</span>
+          <ChevronRight size={14} />
+        </Link>
+      </Card>
 
       <SectionTitle icon={Languages} title={tr("Idioma")} />
       <div className="mb-7">

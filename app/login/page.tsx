@@ -410,6 +410,15 @@ function LoginPageInterior() {
           <div className="mt-2 text-[10px] text-white/60">
             <span className="font-mono text-[#d7dc9a]">demo@obrasl.com</span> · <span className="font-mono text-[#d7dc9a]">trabajador@obrasl.com</span>
           </div>
+          <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-center">
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#d7dc9a] hover:underline"
+            >
+              <ShieldCheck size={13} />
+              <span>{tr("Acceder a la Consola de Administración")}</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

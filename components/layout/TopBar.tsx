@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, Calendar, ChevronDown } from "lucide-react";
+import { Bell, Calendar, ChevronDown, ShieldCheck } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
 import { Sheet } from "@/components/ui/Sheet";
@@ -11,7 +11,7 @@ import { tr } from "@/lib/i18n";
 
 export function TopBar() {
   const { obraActual, obras } = useObra();
-  const { miembro, gestiona } = useMiembro();
+  const { miembro, gestiona, esAdminPlataforma } = useMiembro();
   const [picking, setPicking] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
@@ -69,6 +69,16 @@ export function TopBar() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            {(esAdminPlataforma || miembro?.rol === "dueno") && (
+              <Link
+                href="/admin"
+                aria-label={tr("Admin")}
+                title={tr("Panel de administración")}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-[#d7dc9a]/35 bg-[#d7dc9a]/12 text-[#d7dc9a] backdrop-blur-md transition hover:bg-[#d7dc9a]/25 active:scale-95 shadow-[0_4px_12px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.15)]"
+              >
+                <ShieldCheck size={18} strokeWidth={2.3} />
+              </Link>
+            )}
             {gestiona && (
               <Link
                 href="/resumen"

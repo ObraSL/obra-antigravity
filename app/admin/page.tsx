@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Building2,
@@ -8,11 +9,15 @@ import {
   Check,
   ChevronRight,
   Clock,
+  Coins,
   Copy,
   ExternalLink,
+  Eye,
   Filter,
+  HardHat,
   KeyRound,
   Loader2,
+  LogIn,
   Mail,
   Phone,
   Plus,
@@ -25,13 +30,16 @@ import {
   Trash2,
   Users,
   Wrench,
+  Zap,
+  Sun,
+  Hammer,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { CodigoAlta, EmpresaAdmin, ErrorApp } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { Empty } from "@/components/ui/Empty";
 import { GhostButton, PrimaryButton } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Field";
+import { Input, Field } from "@/components/ui/Field";
 import { Sheet } from "@/components/ui/Sheet";
 import { localeActual, tr, trN } from "@/lib/i18n";
 import clsx from "clsx";
@@ -40,49 +48,58 @@ const fecha = (iso: string) => new Date(iso).toLocaleDateString(localeActual());
 
 type FiltroEstado = "todas" | "activas" | "prueba" | "por_caducar" | "caducadas" | "bloqueadas";
 
-/** Datos de demostración de alta fidelidad si la base de datos aún no tiene empresas registradas */
-const EMPRESAS_DEMO: EmpresaAdmin[] = [
+/** 3 empresas reales canónicas solicitadas por el usuario */
+const EMPRESAS_CANONICAS: EmpresaAdmin[] = [
   {
-    id: "demo-empresa-1",
-    nombre: "Construcciones Pérez S.L.",
-    codigo: "OBRA-8821-XP",
-    created_at: new Date(Date.now() - 45 * 86_400_000).toISOString(),
-    miembros_count: 8,
-    obras_count: 3,
+    id: "empresa-electricidad",
+    nombre: "VoltMax Electricidad & Instalaciones S.L.",
+    sector: "Electricidad e iluminación",
+    codigo: "OBRA-ELEC-77A1",
+    created_at: new Date(Date.now() - 40 * 86_400_000).toISOString(),
+    miembros_count: 2,
+    obras_count: 1,
     activa_hasta: new Date(Date.now() + 24 * 86_400_000).toISOString(),
     bloqueada: false,
-    codigo_alta: "ALTA-PZ2026",
-    email_contacto: "antonio@perezobras.es",
-    telefono_contacto: "+34 612 345 678",
-    responsable_nombre: "Antonio Pérez",
+    codigo_alta: "ALTA-ELEC-2026",
+    email_contacto: "mateo@voltmax.es",
+    telefono_contacto: "+34 611 223 344",
+    responsable_nombre: "Mateo Ruiz",
+    trabajadores_nombres: ["Mateo Ruiz (Oficial 1ª)", "Lucas Benítez (Técnico)"],
+    obras_nombres: ["Edificio Gran Vía - Líneas y Cuadros"],
   },
   {
-    id: "demo-empresa-2",
-    nombre: "Reformas Barcelona Pro",
-    codigo: "OBRA-4490-BC",
-    created_at: new Date(Date.now() - 6 * 86_400_000).toISOString(),
-    miembros_count: 4,
+    id: "empresa-solar",
+    nombre: "Solaria Renovable & Placas S.L.",
+    sector: "Energía solar y fotovoltaica",
+    codigo: "OBRA-SOLA-92B4",
+    created_at: new Date(Date.now() - 1 * 86_400_000).toISOString(),
+    miembros_count: 2,
     obras_count: 1,
-    activa_hasta: new Date(Date.now() + 8 * 86_400_000).toISOString(),
+    activa_hasta: new Date(Date.now() + 6 * 86_400_000).toISOString(),
     bloqueada: false,
-    codigo_alta: "PROMO-BCN-14",
-    email_contacto: "jordi@reformasbarcelona.cat",
-    telefono_contacto: "+34 689 443 211",
-    responsable_nombre: "Jordi Valls",
+    codigo_alta: "TRIAL-SOLAR-7D",
+    email_contacto: "info@solariaplacas.es",
+    telefono_contacto: "+34 622 556 778",
+    responsable_nombre: "Adrián Navarro",
+    trabajadores_nombres: ["Adrián Navarro (Instalador)", "Pablo Ortega (Inversores)"],
+    obras_nombres: ["Parque Solar Residencial El Valle"],
   },
   {
-    id: "demo-empresa-3",
-    nombre: "Estructuras y Hormigón Norte",
-    codigo: "OBRA-1205-NT",
-    created_at: new Date(Date.now() - 90 * 86_400_000).toISOString(),
-    miembros_count: 14,
-    obras_count: 5,
+    id: "empresa-construccion",
+    nombre: "Edifica Construcción & Reformas S.L.",
+    sector: "Construcción y estructuras",
+    codigo: "OBRA-EDIF-33K9",
+    created_at: new Date(Date.now() - 75 * 86_400_000).toISOString(),
+    miembros_count: 2,
+    obras_count: 1,
     activa_hasta: new Date(Date.now() + 2 * 86_400_000).toISOString(),
     bloqueada: false,
-    codigo_alta: "ALTA-NORTE-99",
-    email_contacto: "direccion@estructurasnorte.com",
-    telefono_contacto: "+34 655 778 899",
+    codigo_alta: "ALTA-EDIF-OBRA",
+    email_contacto: "carlos@edificaconstruccion.es",
+    telefono_contacto: "+34 633 889 900",
     responsable_nombre: "Carlos Menéndez",
+    trabajadores_nombres: ["Héctor Romero (Encofrador)", "Gabriel Castro (Albañil)"],
+    obras_nombres: ["Villa Moderna Los Álamos"],
   },
 ];
 
@@ -111,8 +128,6 @@ function clasificarSuscripcion(e: EmpresaAdmin): {
   }
 
   const dias = Math.ceil((new Date(e.activa_hasta).getTime() - Date.now()) / 86_400_000);
-
-  // Si fue creada hace menos de 15 días y tiene días
   const antiguedadDias = Math.ceil((Date.now() - new Date(e.created_at).getTime()) / 86_400_000);
   const esPrueba = antiguedadDias <= 15 && dias > 0;
 
@@ -152,6 +167,7 @@ function clasificarSuscripcion(e: EmpresaAdmin): {
 }
 
 export default function AdminEmpresasPage() {
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
   const [tabActiva, setTabActiva] = useState<"empresas" | "codigos" | "errores">("empresas");
@@ -167,7 +183,16 @@ export default function AdminEmpresasPage() {
   // Modal de detalles de empresa
   const [empresaDetalle, setEmpresaDetalle] = useState<EmpresaAdmin | null>(null);
 
-  // Creación de código
+  // Modal de creación de empresa
+  const [creandoEmpresaModal, setCreandoEmpresaModal] = useState(false);
+  const [nuevaEmpresaNombre, setNuevaEmpresaNombre] = useState("");
+  const [nuevaEmpresaSector, setNuevaEmpresaSector] = useState("Electricidad e iluminación");
+  const [nuevaEmpresaResponsable, setNuevaEmpresaResponsable] = useState("");
+  const [nuevaEmpresaEmail, setNuevaEmpresaEmail] = useState("");
+  const [nuevaEmpresaTelefono, setNuevaEmpresaTelefono] = useState("");
+  const [nuevaEmpresaPlan, setNuevaEmpresaPlan] = useState<number>(14);
+
+  // Creación de código de alta
   const [notaCodigo, setNotaCodigo] = useState("");
   const [diasValidez, setDiasValidez] = useState<number>(14);
   const [creandoCodigo, setCreandoCodigo] = useState(false);
@@ -191,27 +216,45 @@ export default function AdminEmpresasPage() {
 
       let listaEmpresas: EmpresaAdmin[] = (a.data as EmpresaAdmin[]) ?? [];
 
-      // Si no hay empresas en base de datos, usamos las fixture de demostración
+      // Leer empresas personalizadas añadidas por el usuario en localStorage
+      let creadasPorUsuario: EmpresaAdmin[] = [];
+      try {
+        const raw = localStorage.getItem("obra_admin_custom_empresas");
+        if (raw) creadasPorUsuario = JSON.parse(raw);
+      } catch {
+        /* ignore */
+      }
+
+      // Si no hay empresas en base de datos, usamos las 3 canónicas solicitadas
       if (listaEmpresas.length === 0) {
-        listaEmpresas = EMPRESAS_DEMO;
-      } else if (duenosRes.data) {
-        // Enlazar contacto del dueño
-        const mapaDuenos = new Map(duenosRes.data.map((d) => [d.empresa_id, d]));
-        listaEmpresas = listaEmpresas.map((e) => {
-          const d = mapaDuenos.get(e.id);
-          return {
-            ...e,
-            email_contacto: e.email_contacto || d?.email || null,
-            responsable_nombre: e.responsable_nombre || d?.nombre || null,
-          };
-        });
+        listaEmpresas = [...creadasPorUsuario, ...EMPRESAS_CANONICAS];
+      } else {
+        if (duenosRes.data) {
+          const mapaDuenos = new Map(duenosRes.data.map((d) => [d.empresa_id, d]));
+          listaEmpresas = listaEmpresas.map((e) => {
+            const d = mapaDuenos.get(e.id);
+            return {
+              ...e,
+              email_contacto: e.email_contacto || d?.email || null,
+              responsable_nombre: e.responsable_nombre || d?.nombre || null,
+            };
+          });
+        }
+        listaEmpresas = [...creadasPorUsuario, ...listaEmpresas];
       }
 
       setEmpresas(listaEmpresas);
       setCodigos((b.data as CodigoAlta[]) ?? []);
       setErrores((c.data as ErrorApp[]) ?? []);
     } catch {
-      setEmpresas(EMPRESAS_DEMO);
+      let creadasPorUsuario: EmpresaAdmin[] = [];
+      try {
+        const raw = localStorage.getItem("obra_admin_custom_empresas");
+        if (raw) creadasPorUsuario = JSON.parse(raw);
+      } catch {
+        /* ignore */
+      }
+      setEmpresas([...creadasPorUsuario, ...EMPRESAS_CANONICAS]);
     } finally {
       setCargando(false);
     }
@@ -231,10 +274,62 @@ export default function AdminEmpresasPage() {
     }
   };
 
+  /** Cambiar contexto y entrar en la empresa como administrador */
+  const entrarEnEmpresa = (e: EmpresaAdmin) => {
+    localStorage.setItem("obra_admin_inspeccion_empresa", JSON.stringify(e));
+    window.dispatchEvent(new Event("obra_admin_inspeccion_changed"));
+    router.push("/");
+  };
+
+  /** Guardar nueva empresa creada */
+  const handleCrearEmpresa = () => {
+    if (!nuevaEmpresaNombre.trim()) return;
+
+    const sufijo = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const codigoGenerado = `OBRA-${sufijo}-2026`;
+    const activaHasta = nuevaEmpresaPlan > 0
+      ? new Date(Date.now() + nuevaEmpresaPlan * 86_400_000).toISOString()
+      : null;
+
+    const nueva: EmpresaAdmin = {
+      id: `empresa-custom-${Date.now()}`,
+      nombre: nuevaEmpresaNombre.trim(),
+      sector: nuevaEmpresaSector,
+      codigo: codigoGenerado,
+      created_at: new Date().toISOString(),
+      miembros_count: 2,
+      obras_count: 1,
+      activa_hasta: activaHasta,
+      bloqueada: false,
+      codigo_alta: `CREADA-ADMIN-${sufijo}`,
+      email_contacto: nuevaEmpresaEmail.trim() || "director@empresa.com",
+      telefono_contacto: nuevaEmpresaTelefono.trim() || "+34 600 000 000",
+      responsable_nombre: nuevaEmpresaResponsable.trim() || tr("Responsable"),
+      trabajadores_nombres: [`${tr("Operario")} 1`, `${tr("Operario")} 2`],
+      obras_nombres: [`${tr("Obra Principal")} - ${nuevaEmpresaSector}`],
+    };
+
+    const actualizadas = [nueva, ...empresas];
+    setEmpresas(actualizadas);
+
+    try {
+      const raw = localStorage.getItem("obra_admin_custom_empresas");
+      const prev = raw ? JSON.parse(raw) : [];
+      localStorage.setItem("obra_admin_custom_empresas", JSON.stringify([nueva, ...prev]));
+    } catch {
+      /* ignore */
+    }
+
+    setCreandoEmpresaModal(false);
+    setNuevaEmpresaNombre("");
+    setNuevaEmpresaResponsable("");
+    setNuevaEmpresaEmail("");
+    setNuevaEmpresaTelefono("");
+  };
+
   const crearCodigo = async () => {
     setCreandoCodigo(true);
     setErrorCodigo("");
-    // Generar código de 12 caracteres único: OBRA-XXXX-YYYY
     const { data, error } = await supabase.rpc("crear_codigo_alta", { p_nota: notaCodigo });
     if (error || !data) {
       setErrorCodigo(tr("No se pudo crear el código. Inténtalo otra vez."));
@@ -257,6 +352,9 @@ export default function AdminEmpresasPage() {
       p_activa_hasta: hasta,
       p_bloqueada: bloqueada,
     });
+    setEmpresas((prev) =>
+      prev.map((item) => (item.id === e.id ? { ...item, activa_hasta: hasta, bloqueada } : item))
+    );
     await cargar();
   };
 
@@ -293,9 +391,10 @@ export default function AdminEmpresasPage() {
         const q = busqueda.toLowerCase().trim();
         const coincideNombre = e.nombre.toLowerCase().includes(q);
         const coincideCodigo = e.codigo.toLowerCase().includes(q);
+        const coincideSector = e.sector?.toLowerCase().includes(q) ?? false;
         const coincideEmail = e.email_contacto?.toLowerCase().includes(q) ?? false;
         const coincideResp = e.responsable_nombre?.toLowerCase().includes(q) ?? false;
-        if (!coincideNombre && !coincideCodigo && !coincideEmail && !coincideResp) return false;
+        if (!coincideNombre && !coincideCodigo && !coincideEmail && !coincideResp && !coincideSector) return false;
       }
 
       return true;
@@ -307,7 +406,7 @@ export default function AdminEmpresasPage() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Selector de Pestañas Principales de la Consola Admin */}
+      {/* 1. Selector de Pestañas Principales */}
       <div className="flex items-center gap-1 rounded-2xl border border-white/12 bg-[#19211c]/90 p-1.5 backdrop-blur-xl shadow-lg">
         <button
           type="button"
@@ -398,9 +497,9 @@ export default function AdminEmpresasPage() {
             </div>
           </div>
 
-          {/* Buscador y Filtros Rápidos */}
-          <div className="space-y-3">
-            <div className="relative">
+          {/* Botón de Añadir Nueva Empresa y Barra de Búsqueda */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
               <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
               <input
                 type="text"
@@ -411,33 +510,42 @@ export default function AdminEmpresasPage() {
               />
             </div>
 
-            {/* Píldoras de Filtro Clicables */}
-            <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              {(
-                [
-                  { id: "todas", label: tr("Todas") },
-                  { id: "activas", label: tr("Activas") },
-                  { id: "prueba", label: tr("Prueba") },
-                  { id: "por_caducar", label: tr("Por caducar") },
-                  { id: "caducadas", label: tr("Caducadas") },
-                  { id: "bloqueadas", label: tr("Bloqueadas") },
-                ] as const
-              ).map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setFiltro(f.id)}
-                  className={clsx(
-                    "rounded-full border px-3 py-1 font-semibold transition",
-                    filtro === f.id
-                      ? "border-[#d7dc9a] bg-[#d7dc9a]/15 text-[#d7dc9a]"
-                      : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
-                  )}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={() => setCreandoEmpresaModal(true)}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#d7dc9a] px-4 py-2.5 text-xs sm:text-sm font-bold text-[#141a16] shadow-md transition hover:bg-[#c8cd8b] active:scale-95 shrink-0"
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              <span>{tr("Nueva empresa")}</span>
+            </button>
+          </div>
+
+          {/* Píldoras de Filtro Clicables */}
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            {(
+              [
+                { id: "todas", label: tr("Todas") },
+                { id: "activas", label: tr("Activas") },
+                { id: "prueba", label: tr("Prueba") },
+                { id: "por_caducar", label: tr("Por caducar") },
+                { id: "caducadas", label: tr("Caducadas") },
+                { id: "bloqueadas", label: tr("Bloqueadas") },
+              ] as const
+            ).map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFiltro(f.id)}
+                className={clsx(
+                  "rounded-full border px-3 py-1 font-semibold transition",
+                  filtro === f.id
+                    ? "border-[#d7dc9a] bg-[#d7dc9a]/15 text-[#d7dc9a]"
+                    : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
 
           {/* Lista de Empresas */}
@@ -473,8 +581,22 @@ export default function AdminEmpresasPage() {
                           </span>
                         </div>
 
+                        {/* Sector de actividad */}
+                        {e.sector && (
+                          <div className="mt-1 flex items-center gap-1.5 text-xs text-white/50">
+                            {e.sector.includes("Electricidad") ? (
+                              <Zap size={13} className="text-[#d7dc9a]" />
+                            ) : e.sector.includes("solar") || e.sector.includes("Placas") ? (
+                              <Sun size={13} className="text-[#d7dc9a]" />
+                            ) : (
+                              <Hammer size={13} className="text-[#d7dc9a]" />
+                            )}
+                            <span>{e.sector}</span>
+                          </div>
+                        )}
+
                         {/* Clave Permanente de la Empresa */}
-                        <div className="mt-2 flex items-center gap-2">
+                        <div className="mt-2.5 flex items-center gap-2">
                           <span className="text-xs text-white/50">{tr("Clave de licencia")}:</span>
                           <button
                             type="button"
@@ -509,6 +631,14 @@ export default function AdminEmpresasPage() {
                             </a>
                           )}
                         </div>
+
+                        {/* Plantilla y obras */}
+                        {e.trabajadores_nombres && e.trabajadores_nombres.length > 0 && (
+                          <div className="mt-2 text-[11.5px] text-white/50">
+                            <span className="text-white/40">{tr("Trabajadores")}:</span>{" "}
+                            {e.trabajadores_nombres.join(" · ")}
+                          </div>
+                        )}
                       </div>
 
                       {/* Métricas y Cifras */}
@@ -524,11 +654,17 @@ export default function AdminEmpresasPage() {
                       </div>
                     </div>
 
-                    {/* Barra de Acciones Rápidas */}
+                    {/* Barra de Acciones: Entrar en la empresa + Renovación */}
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
-                      <div className="text-[11.5px] text-white/40 font-mono">
-                        {fecha(e.created_at)}
-                      </div>
+                      {/* BOTÓN CLAVE: Acceder a la empresa para inspección y soporte */}
+                      <button
+                        type="button"
+                        onClick={() => entrarEnEmpresa(e)}
+                        className="flex items-center gap-1.5 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 px-3 py-1.5 text-xs font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/25 transition"
+                      >
+                        <LogIn size={13} />
+                        <span>{tr("Acceder a empresa")}</span>
+                      </button>
 
                       <div className="flex items-center gap-2">
                         <button
@@ -644,11 +780,9 @@ export default function AdminEmpresasPage() {
 
           {/* Lista de Códigos Libres */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                {tr("Códigos disponibles")} ({libres.length})
-              </h3>
-            </div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              {tr("Códigos disponibles")} ({libres.length})
+            </h3>
 
             {libres.length === 0 ? (
               <div className="rounded-2xl border border-white/10 bg-[#19211c]/60 p-6 text-center text-white/50 text-xs">
@@ -812,6 +946,121 @@ export default function AdminEmpresasPage() {
         </GhostButton>
       </div>
 
+      {/* Modal de Creación de Nueva Empresa */}
+      {creandoEmpresaModal && (
+        <Sheet
+          title={tr("Crear nueva empresa")}
+          onClose={() => setCreandoEmpresaModal(false)}
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-white/70 uppercase tracking-wider block mb-1">
+                {tr("Nombre de la empresa")}
+              </label>
+              <Input
+                value={nuevaEmpresaNombre}
+                onChange={(e) => setNuevaEmpresaNombre(e.target.value)}
+                placeholder={tr("Ej. Instalaciones VoltMax S.L.")}
+                className="bg-black/30 border-white/14"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-white/70 uppercase tracking-wider block mb-1">
+                {tr("Sector de actividad")}
+              </label>
+              <select
+                value={nuevaEmpresaSector}
+                onChange={(e) => setNuevaEmpresaSector(e.target.value)}
+                className="w-full rounded-xl border border-white/14 bg-[#141a16] p-3 text-sm text-white focus:border-[#d7dc9a] focus:outline-none"
+              >
+                <option value="Electricidad e iluminación">⚡ {tr("Electricidad e iluminación")}</option>
+                <option value="Energía solar y fotovoltaica">☀️ {tr("Energía solar y fotovoltaica")}</option>
+                <option value="Construcción y estructuras">🏗️ {tr("Construcción y estructuras")}</option>
+                <option value="Fontanería y climatización">💧 {tr("Fontanería y climatización")}</option>
+                <option value="Pintura y acabados">🎨 {tr("Pintura y acabados")}</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-white/70 uppercase tracking-wider block mb-1">
+                  {tr("Responsable")}
+                </label>
+                <Input
+                  value={nuevaEmpresaResponsable}
+                  onChange={(e) => setNuevaEmpresaResponsable(e.target.value)}
+                  placeholder={tr("Ej. Mateo Ruiz")}
+                  className="bg-black/30 border-white/14"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-white/70 uppercase tracking-wider block mb-1">
+                  {tr("Teléfono")}
+                </label>
+                <Input
+                  value={nuevaEmpresaTelefono}
+                  onChange={(e) => setNuevaEmpresaTelefono(e.target.value)}
+                  placeholder="+34 612 345 678"
+                  className="bg-black/30 border-white/14"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-white/70 uppercase tracking-wider block mb-1">
+                {tr("Email de contacto")}
+              </label>
+              <Input
+                type="email"
+                value={nuevaEmpresaEmail}
+                onChange={(e) => setNuevaEmpresaEmail(e.target.value)}
+                placeholder="contacto@empresa.com"
+                className="bg-black/30 border-white/14"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-white/70 uppercase tracking-wider block mb-1">
+                {tr("Período de suscripción inicial")}
+              </label>
+              <div className="grid grid-cols-4 gap-2 text-xs">
+                {[
+                  { dias: 7, label: `7 ${tr("días")}` },
+                  { dias: 14, label: `14 ${tr("días")}` },
+                  { dias: 30, label: `30 ${tr("días")}` },
+                  { dias: 0, label: tr("Sin caducidad") },
+                ].map((item) => (
+                  <button
+                    key={item.dias}
+                    type="button"
+                    onClick={() => setNuevaEmpresaPlan(item.dias)}
+                    className={clsx(
+                      "rounded-xl border py-2.5 text-center font-bold transition",
+                      nuevaEmpresaPlan === item.dias
+                        ? "border-[#d7dc9a] bg-[#d7dc9a]/15 text-[#d7dc9a]"
+                        : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-3">
+              <GhostButton onClick={() => setCreandoEmpresaModal(false)}>
+                {tr("Cancelar")}
+              </GhostButton>
+              <PrimaryButton onClick={handleCrearEmpresa} disabled={!nuevaEmpresaNombre.trim()}>
+                {tr("Crear y generar clave")}
+              </PrimaryButton>
+            </div>
+          </div>
+        </Sheet>
+      )}
+
       {/* Sheet de Detalle de Empresa */}
       {empresaDetalle && (
         <Sheet
@@ -819,7 +1068,8 @@ export default function AdminEmpresasPage() {
           onClose={() => setEmpresaDetalle(null)}
         >
           <div className="space-y-5">
-            <div className="rounded-2xl border border-white/12 bg-black/30 p-4 space-y-3">
+            {/* Clave de Licencia */}
+            <div className="rounded-2xl border border-white/12 bg-black/30 p-4 space-y-2">
               <div className="text-xs font-bold uppercase tracking-wider text-white/50">
                 {tr("Clave de licencia")}
               </div>
@@ -838,25 +1088,42 @@ export default function AdminEmpresasPage() {
               </div>
             </div>
 
+            {/* Botón de Acceder a Empresa */}
+            <button
+              type="button"
+              onClick={() => entrarEnEmpresa(empresaDetalle)}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#d7dc9a] py-3 text-xs font-bold text-[#141a16] shadow-md transition hover:bg-[#c8cd8b]"
+            >
+              <LogIn size={15} />
+              <span>{tr("Acceder a esta empresa")}</span>
+            </button>
+
+            {/* Información General */}
             <div className="space-y-2 text-xs">
               <div className="text-xs font-bold uppercase tracking-wider text-white/50">
                 {tr("Información general")}
               </div>
+              {empresaDetalle.sector && (
+                <div className="flex justify-between border-b border-white/10 py-1.5">
+                  <span className="text-white/60">{tr("Sector de actividad")}</span>
+                  <span className="font-semibold text-white/90">{empresaDetalle.sector}</span>
+                </div>
+              )}
               <div className="flex justify-between border-b border-white/10 py-1.5">
-                <span className="text-white/60">{tr("ID de empresa")}</span>
-                <span className="font-mono text-white/80">{empresaDetalle.id}</span>
+                <span className="text-white/60">{tr("Responsable")}</span>
+                <span className="font-semibold text-white/90">{empresaDetalle.responsable_nombre || "—"}</span>
+              </div>
+              <div className="flex justify-between border-b border-white/10 py-1.5">
+                <span className="text-white/60">{tr("Email de contacto")}</span>
+                <span className="font-mono text-[#d7dc9a]">{empresaDetalle.email_contacto || "—"}</span>
+              </div>
+              <div className="flex justify-between border-b border-white/10 py-1.5">
+                <span className="text-white/60">{tr("Teléfono")}</span>
+                <span className="font-mono text-white/80">{empresaDetalle.telefono_contacto || "—"}</span>
               </div>
               <div className="flex justify-between border-b border-white/10 py-1.5">
                 <span className="text-white/60">{tr("Fecha de registro")}</span>
                 <span className="text-white/80">{fecha(empresaDetalle.created_at)}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/10 py-1.5">
-                <span className="text-white/60">{tr("Miembros activos")}</span>
-                <span className="text-white/80 font-bold">{empresaDetalle.miembros_count}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/10 py-1.5">
-                <span className="text-white/60">{tr("Obras creadas")}</span>
-                <span className="text-white/80 font-bold">{empresaDetalle.obras_count}</span>
               </div>
               <div className="flex justify-between border-b border-white/10 py-1.5">
                 <span className="text-white/60">{tr("Estado de la suscripción")}</span>
@@ -866,17 +1133,36 @@ export default function AdminEmpresasPage() {
               </div>
             </div>
 
-            {/* Acciones del Modal */}
-            <div className="space-y-2 pt-3">
+            {/* Plantilla y obras */}
+            <div className="space-y-2 text-xs">
+              <div className="text-xs font-bold uppercase tracking-wider text-white/50">
+                {tr("Trabajadores y obras")}
+              </div>
+              {empresaDetalle.trabajadores_nombres?.map((t, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-white/80 py-1 border-b border-white/5">
+                  <Users size={12} className="text-white/40" />
+                  <span>{t}</span>
+                </div>
+              ))}
+              {empresaDetalle.obras_nombres?.map((o, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-white/80 py-1 border-b border-white/5">
+                  <Wrench size={12} className="text-white/40" />
+                  <span>{o}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Acciones de Suscripción */}
+            <div className="space-y-2 pt-2">
               <button
                 type="button"
                 onClick={async () => {
                   await renovarMes(empresaDetalle);
                   setEmpresaDetalle(null);
                 }}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#d7dc9a] py-3 text-xs font-bold text-[#141a16] hover:bg-[#c8cd8b] transition shadow-md"
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/14 bg-white/5 py-2.5 text-xs font-bold text-white hover:bg-white/10 transition"
               >
-                <Plus size={14} />
+                <Plus size={14} className="text-[#d7dc9a]" />
                 <span>{tr("Extender suscripción (+1 mes)")}</span>
               </button>
 

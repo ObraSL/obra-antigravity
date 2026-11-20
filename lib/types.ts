@@ -39,6 +39,9 @@ export type EmpresaAdmin = {
   email_contacto?: string | null;
   telefono_contacto?: string | null;
   responsable_nombre?: string | null;
+  sector?: string;
+  trabajadores_nombres?: string[];
+  obras_nombres?: string[];
 };
 
 /** Un fallo guardado en errores_app (solo lo ve el admin de la plataforma). */
