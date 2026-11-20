@@ -18,19 +18,20 @@ import { tr } from "@/lib/i18n";
  */
 export function InicioTrabajador() {
   const { obraActual, jornadaHoras } = useObra();
-  const { miembro } = useMiembro();
+  const { miembro, modulos } = useMiembro();
   const supabase = useMemo(() => createClient(), []);
 
   const [hoyFichaje, setHoyFichaje] = useState<Fichaje | null>(null);
   const [mes, setMes] = useState({ trabajados: 0, extra: 0, dias: 0 });
   const [avance, setAvance] = useState<number | null>(null);
+  const [trabInfo, setTrabInfo] = useState<{ tipo_tarifa?: "hora" | "dia"; tarifa?: number | null } | null>(null);
 
   const trabajadorId = miembro?.trabajador_id ?? null;
 
   const cargar = useCallback(async () => {
     if (!trabajadorId) return;
     const { desde, hasta } = monthBounds(currentMonth());
-    const [hoy, delMes] = await Promise.all([
+    const [hoy, delMes, delTrab] = await Promise.all([
       supabase
         .from("fichajes")
         .select("*")
@@ -43,12 +44,20 @@ export function InicioTrabajador() {
         .eq("trabajador_id", trabajadorId)
         .gte("fecha", desde)
         .lt("fecha", hasta),
+      supabase
+        .from("trabajadores")
+        .select("tipo_tarifa,tarifa")
+        .eq("id", trabajadorId)
+        .maybeSingle(),
     ]);
 
     setHoyFichaje((hoy.data?.[0] as Fichaje) ?? null);
     const filas = delMes.data ?? [];
     const t = totalesFichajes(filas, jornadaHoras);
     setMes({ trabajados: t.trabajados, extra: t.extra, dias: filas.length });
+    if (delTrab.data) {
+      setTrabInfo(delTrab.data as { tipo_tarifa?: "hora" | "dia"; tarifa?: number | null });
+    }
   }, [trabajadorId, jornadaHoras, supabase]);
 
   useEffect(() => {
@@ -64,8 +73,19 @@ export function InicioTrabajador() {
 
   if (!obraActual) return null;
 
+  const tipoTarifa = trabInfo?.tipo_tarifa ?? "hora";
+  const tarifa = trabInfo?.tarifa ?? null;
+  let gananciasEstimadas: number | null = null;
+  if (tarifa && tarifa > 0) {
+    if (tipoTarifa === "dia") {
+      gananciasEstimadas = mes.dias * tarifa;
+    } else {
+      gananciasEstimadas = Math.round((mes.trabajados / 60) * tarifa * 100) / 100;
+    }
+  }
+
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-3.5 pb-28">
       {/* Cabecera con datos de la obra */}
       <div className="mb-2 px-1">
         <h1 className="text-[20px] font-bold uppercase tracking-tight text-white">
@@ -114,11 +134,28 @@ export function InicioTrabajador() {
             <Clock size={15} />
           </div>
         </div>
-        <div className="font-mono-obra mt-2 text-[38px] font-light tracking-tight text-white leading-none">
-          {fmtHoras(mes.trabajados)}
+        <div className="flex items-baseline justify-between mt-2">
+          <div className="font-mono-obra text-[38px] font-light tracking-tight text-white leading-none">
+            {fmtHoras(mes.trabajados)}
+          </div>
+          {modulos.mostrar_ganancias && gananciasEstimadas !== null && (
+            <div className="text-right">
+              <div className="font-mono text-xl font-bold text-[#d7dc9a]">
+                ~{Math.round(gananciasEstimadas)} €
+              </div>
+              <div className="text-[10px] uppercase font-bold text-white/50 tracking-wider">
+                {tr("Ganancias estimadas")}
+              </div>
+            </div>
+          )}
         </div>
-        <div className="mt-1 text-[12px] text-white/50">
-          {mes.extra > 0 ? tr("{horas} extra", { horas: fmtHoras(mes.extra) }) : tr("Total del mes")}
+        <div className="mt-2 text-[12px] text-white/50 flex items-center justify-between">
+          <span>{mes.extra > 0 ? tr("{horas} extra", { horas: fmtHoras(mes.extra) }) : tr("Total del mes")}</span>
+          {modulos.mostrar_ganancias && tarifa && (
+            <span className="text-white/40 font-mono text-[11px]">
+              {tipoTarifa === "dia" ? `${tarifa} € / ${tr("día")}` : `${tarifa} € / ${tr("hora")}`}
+            </span>
+          )}
         </div>
       </div>
 
@@ -183,22 +220,25 @@ export function InicioTrabajador() {
       {/* Botón de informe de voz del día */}
       <Link
         href="/notas"
-        className="flex items-center justify-between rounded-[20px] border border-white/12 bg-[#141a16]/85 p-4 shadow-lg backdrop-blur-xl transition hover:border-white/20 active:scale-[0.99]"
+        className="flex items-center justify-between rounded-[20px] border border-[#d7dc9a]/35 bg-gradient-to-r from-[#172019] to-[#141a16] p-4 shadow-lg backdrop-blur-xl transition hover:border-[#d7dc9a]/60 active:scale-[0.99]"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-[#d7dc9a] border border-white/10 shadow-sm">
-            <Mic size={18} strokeWidth={2.2} />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#d7dc9a]/15 text-[#d7dc9a] border border-[#d7dc9a]/30 shadow-sm">
+            <Mic size={20} strokeWidth={2.4} />
           </div>
           <div>
-            <div className="text-[14px] font-bold text-white">
-              {tr("Dictar informe del día")}
+            <div className="text-[14px] font-bold text-white flex items-center gap-2">
+              <span>{tr("Dictar informe del día")}</span>
+              <span className="rounded-full bg-[#d7dc9a]/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#d7dc9a]">
+                IA
+              </span>
             </div>
             <div className="text-[11.5px] text-white/50">
               {tr("Diario de obra con IA")}
             </div>
           </div>
         </div>
-        <ArrowRight size={18} className="text-white/40" />
+        <ArrowRight size={18} className="text-[#d7dc9a]" />
       </Link>
     </div>
   );

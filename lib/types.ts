@@ -97,11 +97,15 @@ export type Obra = {
   created_at: string;
 };
 
+export type TipoTarifa = "hora" | "dia";
+
 export type Trabajador = {
   id: string;
   owner_id: string;
   nombre: string;
   activo: boolean;
+  tipo_tarifa?: TipoTarifa;
+  tarifa?: number | null;
   created_at: string;
 };
 

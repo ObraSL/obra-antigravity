@@ -37,6 +37,7 @@ export function MiFichaje() {
   const [fichaje, setFichaje] = useState<Fichaje | null>(null);
   const [mes, setMes] = useState({ trabajados: 0, extra: 0 });
   const [fichajesDelMes, setFichajesDelMes] = useState<{ fecha: string; hora_entrada: string | null; hora_salida: string | null }[]>([]);
+  const [trabInfo, setTrabInfo] = useState<{ tipo_tarifa?: "hora" | "dia"; tarifa?: number | null } | null>(null);
   const [cambiandoObra, setCambiandoObra] = useState(false);
   const [editandoTarea, setEditandoTarea] = useState(false);
   const [error, setError] = useState("");
@@ -67,7 +68,7 @@ export function MiFichaje() {
     if (!obraActual || !trabajadorId) return;
     const { desde, hasta } = monthBounds(mesFiltro);
 
-    const [delDia, delMes] = await Promise.all([
+    const [delDia, delMes, delTrab] = await Promise.all([
       supabase
         .from("fichajes")
         .select("*")
@@ -82,11 +83,19 @@ export function MiFichaje() {
         .eq("trabajador_id", trabajadorId)
         .gte("fecha", desde)
         .lt("fecha", hasta),
+      supabase
+        .from("trabajadores")
+        .select("tipo_tarifa,tarifa")
+        .eq("id", trabajadorId)
+        .maybeSingle(),
     ]);
 
     setFichaje((delDia.data as Fichaje) ?? null);
     const filasMes = (delMes.data as { fecha: string; hora_entrada: string | null; hora_salida: string | null }[]) ?? [];
     setFichajesDelMes(filasMes);
+    if (delTrab.data) {
+      setTrabInfo(delTrab.data as { tipo_tarifa?: "hora" | "dia"; tarifa?: number | null });
+    }
     const t = totalesFichajes(filasMes, jornadaHoras);
     setMes({ trabajados: t.trabajados, extra: t.extra });
   }, [obraActual, trabajadorId, fecha, mesFiltro, jornadaHoras, supabase]);
@@ -182,33 +191,23 @@ export function MiFichaje() {
   const minutos = minutosTrabajados(fichaje?.hora_entrada, fichaje?.hora_salida);
   const extra = minutosExtra(minutos, jornadaHoras);
 
+  const tipoTarifa = trabInfo?.tipo_tarifa ?? "hora";
+  const tarifa = trabInfo?.tarifa ?? null;
+  let gananciasEstimadas: number | null = null;
+  if (tarifa && tarifa > 0) {
+    if (tipoTarifa === "dia") {
+      gananciasEstimadas = diasFichados.size * tarifa;
+    } else {
+      gananciasEstimadas = Math.round((mes.trabajados / 60) * tarifa * 100) / 100;
+    }
+  }
+
   return (
-    <div>
-      <HeroStatCard
-        label={tr("Mis horas · {mes}", { mes: monthLabel(mesFiltro) })}
-        value={fmtHoras(mes.trabajados)}
-        sub={mes.extra > 0 ? tr("{horas} extra este mes", { horas: fmtHoras(mes.extra) }) : tr("Total del mes")}
-      />
-
-      <div className="mt-3.5">
-        <CalendarioMes
-          mes={mesFiltro}
-          onMesChange={setMesFiltro}
-          fechaSeleccionada={fecha}
-          onSelectFecha={setFecha}
-          diasFichados={diasFichados}
-          diasIncompletos={diasIncompletos}
-          totalHorasMes={fmtHoras(mes.trabajados)}
-        />
-      </div>
-
-      <div className="mt-1">
-        <DayNav fecha={fecha} onChange={setFecha} />
-      </div>
-
+    <div className="pb-28">
+      {/* 1. Selector de obra actual */}
       <button
         onClick={() => setCambiandoObra(true)}
-        className="mb-3.5 flex w-full items-center gap-2 rounded-xl border border-obra-card-border bg-obra-card px-3.5 py-2.5 text-left"
+        className="mb-3 flex w-full items-center gap-2 rounded-xl border border-obra-card-border bg-obra-card px-3.5 py-2.5 text-left"
       >
         <Building2 size={15} className="shrink-0 text-obra-yellow" />
         <span className="min-w-0 flex-1 truncate text-[13.5px] text-obra-text-dim">
@@ -218,32 +217,39 @@ export function MiFichaje() {
       </button>
 
       {error && (
-        <div className="mb-3.5 rounded-xl bg-obra-red-bg px-3.5 py-3 text-[13px] text-obra-red-text">
+        <div className="mb-3 rounded-xl bg-obra-red-bg px-3.5 py-3 text-[13px] text-obra-red-text">
           {error}
         </div>
       )}
 
       {(pendienteEntrada || pendienteSalida) && (
-        <div className="mb-3.5 flex items-center gap-2 rounded-xl bg-obra-yellow/12 px-3.5 py-3 text-[13px] text-obra-yellow">
+        <div className="mb-3 flex items-center gap-2 rounded-xl bg-obra-yellow/12 px-3.5 py-3 text-[13px] text-obra-yellow">
           <WifiOff size={15} className="shrink-0" />
           {tr("Sin conexión: tu fichaje está guardado en el móvil y se enviará solo en cuanto vuelva la señal.")}
         </div>
       )}
 
-      <Card className="p-4">
+      {/* 2. Bloque principal de fichaje (Entrada / Salida) en primer plano */}
+      <Card className="mb-3.5 p-4">
         {minutos !== null && (
-          <div className="mb-3 flex items-center gap-2 text-[13px]">
-            <span className="font-mono-obra font-bold text-obra-text">{fmtHoras(minutos)}</span>
-            {extra > 0 && (
-              <span className="rounded-full bg-obra-yellow/12 px-2 py-0.5 text-[11px] font-bold text-obra-yellow">
-                {tr("+{horas} extra", { horas: fmtHoras(extra) })}
+          <div className="mb-3 flex items-center justify-between text-[13px]">
+            <div className="flex items-center gap-2">
+              <span className="font-mono-obra font-bold text-obra-text">{fmtHoras(minutos)}</span>
+              {extra > 0 && (
+                <span className="rounded-full bg-obra-yellow/12 px-2 py-0.5 text-[11px] font-bold text-obra-yellow">
+                  {tr("+{horas} extra", { horas: fmtHoras(extra) })}
+                </span>
+              )}
+            </div>
+            {modulos.mostrar_ganancias && tarifa && (
+              <span className="text-xs font-mono font-semibold text-[#d7dc9a]">
+                ~{tipoTarifa === "dia" ? `${tarifa} € / día` : `${Math.round((minutos / 60) * tarifa * 10) / 10} € hoy`}
               </span>
             )}
           </div>
         )}
 
-        {/* Si el dueño le ha corregido las horas (o movido de obra), que lo
-            vea: es lo justo. */}
+        {/* Si el dueño le ha corregido las horas (o movido de obra), que lo vea */}
         {(fichaje?.hora_corregida || fichaje?.confirmado_trabajador === false) && (
           <div className="mb-3">
             {fichaje.hora_corregida && (
@@ -311,8 +317,36 @@ export function MiFichaje() {
         </button>
       </Card>
 
+      {/* 3. Selector de día */}
+      <div className="mb-3.5">
+        <DayNav fecha={fecha} onChange={setFecha} />
+      </div>
+
+      {!esHoy && (
+        <div className="mb-3.5 text-center text-[12.5px] text-obra-text-faint">
+          {tr("Solo puedes fichar el día de hoy. Si falta algo de otro día, díselo al jefe.")}
+        </div>
+      )}
+
+      {/* 4. Resumen mensual y ganancias estimadas */}
+      <HeroStatCard
+        label={tr("Mis horas · {mes}", { mes: monthLabel(mesFiltro) })}
+        value={fmtHoras(mes.trabajados)}
+        sub={
+          modulos.mostrar_ganancias && gananciasEstimadas !== null
+            ? tr("{horas} · ~{dinero} € estimados", {
+                horas: fmtHoras(mes.trabajados),
+                dinero: String(Math.round(gananciasEstimadas)),
+              })
+            : mes.extra > 0
+              ? tr("{horas} extra este mes", { horas: fmtHoras(mes.extra) })
+              : tr("Total del mes")
+        }
+      />
+
+      {/* 5. Transporte si aplica */}
       {esHoy && modulos.transporte && (
-        <Card className="mt-3 p-4">
+        <Card className="mt-3.5 p-4">
           <TransporteSelector
             transporte={fichaje?.transporte ?? null}
             traidoPor={fichaje?.traido_por ?? null}
@@ -323,11 +357,18 @@ export function MiFichaje() {
         </Card>
       )}
 
-      {!esHoy && (
-        <div className="mt-3 text-center text-[12.5px] text-obra-text-faint">
-          {tr("Solo puedes fichar el día de hoy. Si falta algo de otro día, díselo al jefe.")}
-        </div>
-      )}
+      {/* 6. Calendario del mes (acordeón plegado por defecto) */}
+      <div className="mt-3.5">
+        <CalendarioMes
+          mes={mesFiltro}
+          onMesChange={setMesFiltro}
+          fechaSeleccionada={fecha}
+          onSelectFecha={setFecha}
+          diasFichados={diasFichados}
+          diasIncompletos={diasIncompletos}
+          totalHorasMes={fmtHoras(mes.trabajados)}
+        />
+      </div>
 
       {cambiandoObra && (
         <Sheet title={tr("¿En qué obra estás?")} onClose={() => setCambiandoObra(false)}>

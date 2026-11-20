@@ -50,6 +50,7 @@ export const NAV_ITEM_PLANIFICACION: NavItem = {
 const NAV_TRABAJADOR: NavItem[] = [
   NAV_ITEM_INICIO,
   { href: "/fichajes", label: "Mis horas", icon: Clock },
+  { href: "/notas", label: "Notas de voz", icon: Mic },
   { href: "/vehiculos", label: "Vehículos", icon: Truck },
   NAV_ITEM_AJUSTES,
 ];
@@ -87,7 +88,6 @@ function navLateralCompleto(rol: Rol | null): NavItem[] {
 export const RUTAS_SOLO_GESTORES = [
   "/gastos",
   "/facturas",
-  "/notas",
   "/resumen",
   "/planificacion",
   "/dinero",

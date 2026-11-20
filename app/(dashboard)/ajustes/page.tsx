@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Blocks, Building2, ChevronRight, Clock, HardHat, KeyRound, Languages, LogOut, MapPin, Moon, Plus, Scale, Shield, ShieldAlert, Sun, Trash2, Truck, Users } from "lucide-react";
+import { Blocks, Building2, ChevronRight, Clock, Coins, HardHat, KeyRound, Languages, LogOut, MapPin, Plus, Scale, Shield, ShieldAlert, Trash2, Truck, UserCheck, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useObra } from "@/lib/obra-context";
 import { useMiembro } from "@/lib/miembro-context";
-import { useTema } from "@/lib/tema-provider";
 import { createClient } from "@/lib/supabase/client";
 import { ROLES, type Obra, type Trabajador, type Vehiculo } from "@/lib/types";
 import { Input } from "@/components/ui/Field";
@@ -20,6 +19,7 @@ import { EliminarObra } from "@/components/ajustes/EliminarObra";
 import { ConfigurarObra } from "@/components/ajustes/ConfigurarObra";
 import { ModalEliminarCuenta } from "@/components/ajustes/ModalEliminarCuenta";
 import { ModalConsentimientoLegal } from "@/components/legal/ModalConsentimientoLegal";
+import { PerfilUsuario } from "@/components/ajustes/PerfilUsuario";
 import clsx from "clsx";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
 import { LISTA_MODULOS } from "@/lib/modulos";
@@ -45,7 +45,6 @@ function AjustesGestor() {
     guardarJefeVeTodas,
   } = useObra();
   const { rol, esDueno, modulos, guardarModulo } = useMiembro();
-  const { tema, alternarTema } = useTema();
   // Quién puede tocar el maestro de obras, trabajadores y vehículos.
   const administra = rol === "dueno" || rol === "manager";
   const [jornadaTexto, setJornadaTexto] = useState<string>("");
@@ -56,6 +55,9 @@ function AjustesGestor() {
 
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [editandoTrabajador, setEditandoTrabajador] = useState<Trabajador | null>(null);
+  const [tarifaInput, setTarifaInput] = useState<string>("");
+  const [tipoTarifaInput, setTipoTarifaInput] = useState<"hora" | "dia">("hora");
 
   useEffect(() => {
     supabase.from("trabajadores").select("*").order("nombre").then(({ data }) => setTrabajadores(data ?? []));
@@ -67,6 +69,31 @@ function AjustesGestor() {
     if (!user) return;
     const { data } = await supabase.from("trabajadores").insert({ owner_id: user.id, nombre }).select().single();
     if (data) setTrabajadores((prev) => [...prev, data].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+  };
+
+  const abrirEditarTrabajador = (t: Trabajador) => {
+    setEditandoTrabajador(t);
+    setTarifaInput(t.tarifa != null ? String(t.tarifa) : "");
+    setTipoTarifaInput(t.tipo_tarifa ?? "hora");
+  };
+
+  const guardarTarifaTrabajador = async () => {
+    if (!editandoTrabajador) return;
+    const numTarifa = tarifaInput.trim() ? Number(tarifaInput.replace(",", ".")) : null;
+    const { data, error } = await supabase
+      .from("trabajadores")
+      .update({
+        tipo_tarifa: tipoTarifaInput,
+        tarifa: numTarifa && !isNaN(numTarifa) ? numTarifa : null,
+      })
+      .eq("id", editandoTrabajador.id)
+      .select()
+      .single();
+
+    if (!error && data) {
+      setTrabajadores((prev) => prev.map((t) => (t.id === editandoTrabajador.id ? (data as Trabajador) : t)));
+      setEditandoTrabajador(null);
+    }
   };
 
   const toggleTrabajadorActivo = async (id: string) => {
@@ -112,33 +139,13 @@ function AjustesGestor() {
 
   return (
     <div>
+      <SectionTitle icon={UserCheck} title={tr("Mi cuenta y perfil")} />
+      <PerfilUsuario />
+
       <SectionTitle icon={Languages} title={tr("Idioma")} />
       <div className="mb-7">
         <SelectorIdioma />
       </div>
-
-      <SectionTitle icon={Sun} title={tr("Aspecto")} />
-      <Card className="mb-7 p-3.5 flex items-center justify-between">
-        <div>
-          <div className="text-[14px] font-medium text-white">{tr("Modo sol")}</div>
-          <div className="text-[12px] text-white/70">
-            {tr("Papel claro de alto contraste para trabajar a pleno sol en la obra.")}
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={alternarTema}
-          className={clsx(
-            "flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-[12.5px] font-medium transition",
-            tema === "claro"
-              ? "border-[#d7dc9a] bg-[#1c221e] text-[#d7dc9a]"
-              : "border-white/14 bg-white/10 text-white hover:bg-white/15"
-          )}
-        >
-          {tema === "claro" ? <Sun size={15} /> : <Moon size={15} />}
-          <span>{tema === "claro" ? tr("Claro (Sol)") : tr("Salvia")}</span>
-        </button>
-      </Card>
       {esDueno && (
         <>
           <SectionTitle icon={KeyRound} title={tr("Accesos")} />
@@ -327,17 +334,37 @@ function AjustesGestor() {
           <div className="text-[13px] text-obra-text-faint">{tr("Todavía no hay trabajadores.")}</div>
         )}
         {trabajadores.map((t) => (
-          <Card key={t.id} className="flex items-center justify-between p-3">
-            <div className="text-[14.5px] font-semibold text-obra-text">{t.nombre}</div>
-            <button
-              onClick={() => toggleTrabajadorActivo(t.id)}
-              className={clsx(
-                "rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase",
-                t.activo ? "border-obra-green text-obra-green" : "border-obra-line text-obra-text-faint"
-              )}
+          <Card key={t.id} className="flex items-center justify-between p-3.5">
+            <div
+              className="min-w-0 flex-1 cursor-pointer pr-2"
+              onClick={() => abrirEditarTrabajador(t)}
             >
-              {t.activo ? tr("Activo") : tr("Baja")}
-            </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[14.5px] font-semibold text-obra-text">{t.nombre}</span>
+                {t.tarifa ? (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[#d7dc9a]/15 px-2 py-0.5 text-[11px] font-mono font-bold text-[#d7dc9a]">
+                    <Coins size={11} />
+                    {t.tarifa} €/{t.tipo_tarifa === "dia" ? tr("día") : tr("h")}
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-obra-text-faint italic">{tr("Sin tarifa")}</span>
+                )}
+              </div>
+              <div className="text-[11.5px] text-obra-text-faint mt-0.5">
+                {tr("Toca para editar tarifa y pagos")}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => toggleTrabajadorActivo(t.id)}
+                className={clsx(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase transition",
+                  t.activo ? "border-obra-green text-obra-green hover:bg-obra-green/10" : "border-obra-line text-obra-text-faint hover:bg-white/5"
+                )}
+              >
+                {t.activo ? tr("Activo") : tr("Baja")}
+              </button>
+            </div>
           </Card>
         ))}
       </div>
@@ -452,6 +479,82 @@ function AjustesGestor() {
           />
         </Sheet>
       )}
+
+      {editandoTrabajador && (
+        <Sheet
+          title={tr("Tarifa · {trabajador}", { trabajador: editandoTrabajador.nombre })}
+          onClose={() => setEditandoTrabajador(null)}
+        >
+          <div className="space-y-4">
+            <div className="text-[13px] text-obra-text-dim">
+              {tr("Configura cómo se calculan las ganancias de este trabajador.")}
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-white/70 uppercase tracking-wider block mb-1.5">
+                {tr("Tipo de pago")}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTipoTarifaInput("hora")}
+                  className={clsx(
+                    "rounded-xl border p-3 text-center transition",
+                    tipoTarifaInput === "hora"
+                      ? "border-[#d7dc9a] bg-[#d7dc9a]/12 text-[#d7dc9a] font-bold"
+                      : "border-white/12 bg-white/5 text-white/70 hover:bg-white/10"
+                  )}
+                >
+                  <div className="text-sm font-semibold">{tr("Por hora (€/h)")}</div>
+                  <div className="text-[11px] opacity-75 mt-0.5">{tr("Multiplica las horas")}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTipoTarifaInput("dia")}
+                  className={clsx(
+                    "rounded-xl border p-3 text-center transition",
+                    tipoTarifaInput === "dia"
+                      ? "border-[#d7dc9a] bg-[#d7dc9a]/12 text-[#d7dc9a] font-bold"
+                      : "border-white/12 bg-white/5 text-white/70 hover:bg-white/10"
+                  )}
+                >
+                  <div className="text-sm font-semibold">{tr("Por día (€/día)")}</div>
+                  <div className="text-[11px] opacity-75 mt-0.5">{tr("Multiplica días trabajados")}</div>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-white/70 uppercase tracking-wider block mb-1.5">
+                {tipoTarifaInput === "dia" ? tr("Precio por día (€)") : tr("Precio por hora (€)")}
+              </label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.5"
+                  min="0"
+                  placeholder={tipoTarifaInput === "dia" ? "120" : "15"}
+                  value={tarifaInput}
+                  onChange={(e) => setTarifaInput(e.target.value)}
+                  className="pr-10 font-mono text-base"
+                />
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 font-semibold text-white/50">€</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <GhostButton onClick={() => setEditandoTrabajador(null)}>
+                {tr("Cancelar")}
+              </GhostButton>
+              <PrimaryButton onClick={guardarTarifaTrabajador}>
+                {tr("Guardar tarifa")}
+              </PrimaryButton>
+            </div>
+          </div>
+        </Sheet>
+      )}
     </div>
   );
 }
@@ -459,8 +562,6 @@ function AjustesGestor() {
 /** Ajustes de un trabajador: solo su cuenta. */
 function AjustesTrabajador() {
   const router = useRouter();
-  const { miembro } = useMiembro();
-  const { tema, alternarTema } = useTema();
   const [eliminandoCuenta, setEliminandoCuenta] = useState(false);
   const [viendoConsentimiento, setViendoConsentimiento] = useState(false);
 
@@ -472,45 +573,13 @@ function AjustesTrabajador() {
 
   return (
     <div>
-      <SectionTitle icon={Users} title={tr("Mi cuenta")} />
-      <Card className="mb-7 p-4">
-        <div className="text-[15.5px] font-bold text-obra-text">{miembro?.nombre || "—"}</div>
-        <div className="mt-0.5 text-[12.5px] text-obra-text-faint">{miembro?.email}</div>
-        <div className="mt-3 inline-flex rounded-full border border-obra-line px-2.5 py-1 text-[11px] font-bold uppercase text-obra-text-dim">
-          {tr(ROLES.find((r) => r.id === miembro?.rol)?.label ?? "")}
-        </div>
-        <div className="mt-3 text-[12.5px] leading-relaxed text-obra-text-faint">
-          {tr("Si algo de esto no está bien, díselo al jefe: él lo cambia desde su cuenta.")}
-        </div>
-      </Card>
+      <SectionTitle icon={UserCheck} title={tr("Mi cuenta y perfil")} />
+      <PerfilUsuario />
 
       <SectionTitle icon={Languages} title={tr("Idioma")} />
       <div className="mb-7">
         <SelectorIdioma />
       </div>
-
-      <SectionTitle icon={Sun} title={tr("Aspecto")} />
-      <Card className="mb-7 p-3.5 flex items-center justify-between">
-        <div>
-          <div className="text-[14px] font-medium text-white">{tr("Modo sol")}</div>
-          <div className="text-[12px] text-white/70">
-            {tr("Papel claro de alto contraste para trabajar a pleno sol en la obra.")}
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={alternarTema}
-          className={clsx(
-            "flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-[12.5px] font-medium transition",
-            tema === "claro"
-              ? "border-[#d7dc9a] bg-[#1c221e] text-[#d7dc9a]"
-              : "border-white/14 bg-white/10 text-white hover:bg-white/15"
-          )}
-        >
-          {tema === "claro" ? <Sun size={15} /> : <Moon size={15} />}
-          <span>{tema === "claro" ? tr("Claro (Sol)") : tr("Salvia")}</span>
-        </button>
-      </Card>
 
       <SectionTitle icon={Shield} title={tr("Privacidad y seguridad")} />
       <Card className="mb-7 p-4 space-y-3">

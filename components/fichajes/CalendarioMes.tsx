@@ -27,7 +27,7 @@ export function CalendarioMes({
   diasFichados,
   diasIncompletos = new Set(),
   totalHorasMes,
-  inicialAbierto = true,
+  inicialAbierto = false,
 }: CalendarioMesProps) {
   const [abierto, setAbierto] = useState(inicialAbierto);
   const hoy = todayStr();

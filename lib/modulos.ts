@@ -9,6 +9,7 @@ export type Modulos = {
   caja_jefe: boolean;
   transporte: boolean;
   geolocalizacion: boolean;
+  mostrar_ganancias: boolean;
 };
 
 export type ClaveModulo = keyof Modulos;
@@ -19,6 +20,7 @@ export const MODULOS_POR_DEFECTO: Modulos = {
   caja_jefe: true,
   transporte: true,
   geolocalizacion: true,
+  mostrar_ganancias: false,
 };
 
 /** Para la pantalla de Ajustes (los textos pasan por tr() al pintarlos). */
@@ -35,6 +37,11 @@ export const LISTA_MODULOS: { clave: ClaveModulo; label: string; descripcion: st
     clave: "geolocalizacion",
     label: "Ubicación al fichar",
     descripcion: "Al fichar se comprueba si el móvil está dentro o fuera de la obra.",
+  },
+  {
+    clave: "mostrar_ganancias",
+    label: "Mostrar ganancias a trabajadores",
+    descripcion: "Permite a cada trabajador ver el cálculo estimado de su sueldo del mes según su tarifa.",
   },
 ];
 
