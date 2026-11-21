@@ -9,6 +9,7 @@ import { Field, Input } from "@/components/ui/Field";
 import { PrimaryButton } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
+import { useEsIosAppStore } from "@/lib/plataforma";
 import { tr } from "@/lib/i18n";
 
 const EMAIL_RECORDADO = "control-de-obra:email";
@@ -30,6 +31,7 @@ function LoginPageInterior() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const params = useSearchParams();
+  const esIosApp = useEsIosAppStore();
   // ?empresa= (invitación de una empresa) o ?alta= (vuelta del pago en /alta).
   const codigoEnlace = params.get("empresa") ?? params.get("alta");
 
@@ -319,9 +321,15 @@ function LoginPageInterior() {
                 />
               </Field>
               {codigoInfo.estado !== "empresa" && codigoInfo.estado !== "alta" && (
-                <Link href="/alta" className="-mt-2 mb-3.5 block text-[13px] font-semibold text-obra-yellow">
-                  {tr("¿Tu empresa aún no tiene código? Consíguelo aquí")}
-                </Link>
+                esIosApp ? (
+                  <p className="-mt-2 mb-3.5 text-[13px] text-obra-text-faint">
+                    {tr("Solicita el código de acceso al responsable de tu empresa.")}
+                  </p>
+                ) : (
+                  <Link href="/alta" className="-mt-2 mb-3.5 block text-[13px] font-semibold text-obra-yellow">
+                    {tr("¿Tu empresa aún no tiene código? Consíguelo aquí")}
+                  </Link>
+                )
               )}
               {codigoInfo.estado === "comprobando" && (
                 <div className="-mt-2 mb-3.5 text-[13px] text-obra-text-faint">{tr("Comprobando el código…")}</div>

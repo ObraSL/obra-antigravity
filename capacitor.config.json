@@ -1,0 +1,13 @@
+{
+  "appId": "com.obrasl.controldeobra",
+  "appName": "Control de Obra",
+  "webDir": "out",
+  "server": {
+    "url": "https://obra-antigravity.vercel.app?ios_app=1",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#1E2520"
+  }
+}

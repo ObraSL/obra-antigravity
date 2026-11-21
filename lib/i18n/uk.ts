@@ -893,4 +893,7 @@ export const uk: Record<string, string> = {
   "Ej. Falta de pago recurrente tras 3 avisos": "Напр. Несплата після 3 попереджень",
   "Fichado sin conexión": "Відмітка без зв'язку",
   "Fichado sin conexión · sync {hora}": "Відмітка без зв'язку · синхр. {hora}",
+  "Solicita el código de acceso al responsable de tu empresa.": "Запросіть код доступу у керівника вашої компанії.",
+  "Acceso para empresas autorizadas": "Доступ для авторизованих компаній",
+  "Esta aplicación es un complemento corporativo. Solicita el código de acceso al responsable de tu empresa para iniciar sesión.": "Цей застосунок є корпоративним клієнтом. Запросіть код доступу у керівника вашої компанії, щоб увійти.",
 };

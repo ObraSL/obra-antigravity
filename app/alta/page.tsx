@@ -2,28 +2,31 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 import { Field, Input } from "@/components/ui/Field";
 import { PrimaryButton } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { SelectorIdioma } from "@/components/ui/SelectorIdioma";
+import { esModoIosAppStore, useEsIosAppStore } from "@/lib/plataforma";
 import { localeActual, tr } from "@/lib/i18n";
 
 type Precio = { disponible: false } | { disponible: true; importe: number; moneda: string; intervalo: string };
 
 /** Para una empresa nueva sin código: paga con tarjeta y recibe su código de alta. */
 export default function AltaPage() {
+  const esIosApp = useEsIosAppStore();
   const [precio, setPrecio] = useState<Precio | null>(null);
   const [email, setEmail] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (esIosApp || esModoIosAppStore()) return;
     fetch("/api/alta/checkout")
       .then((r) => r.json())
       .then(setPrecio)
       .catch(() => setPrecio({ disponible: false }));
-  }, []);
+  }, [esIosApp]);
 
   const pagar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +70,25 @@ export default function AltaPage() {
         </div>
       </div>
 
-      {precio === null ? (
+      {esIosApp ? (
+        <div className="space-y-4 rounded-2xl border border-white/12 bg-obra-card p-5 text-center shadow-lg">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-obra-yellow/15 text-obra-yellow">
+            <ShieldCheck size={20} />
+          </div>
+          <div className="font-display text-lg font-bold uppercase text-obra-text">
+            {tr("Acceso para empresas autorizadas")}
+          </div>
+          <p className="text-[13.5px] leading-relaxed text-obra-text-dim">
+            {tr("Esta aplicación es un complemento corporativo. Solicita el código de acceso al responsable de tu empresa para iniciar sesión.")}
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex w-full items-center justify-center rounded-xl bg-obra-yellow px-4 py-3 text-sm font-bold text-[#141a16] shadow transition hover:opacity-95"
+          >
+            {tr("Volver a iniciar sesión")}
+          </Link>
+        </div>
+      ) : precio === null ? (
         <div className="flex justify-center py-6">
           <Loader2 className="animate-spin text-obra-yellow" size={22} />
         </div>
