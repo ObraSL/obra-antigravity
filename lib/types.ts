@@ -23,6 +23,13 @@ export type Miembro = {
   created_at: string;
 };
 
+export type RegistroAuditoria = {
+  fecha: string;
+  accion: string;
+  detalle: string;
+  admin?: string;
+};
+
 /** Una fila de la lista de todas las empresas (solo para el admin de la plataforma). */
 export type EmpresaAdmin = {
   id: string;
@@ -42,6 +49,11 @@ export type EmpresaAdmin = {
   sector?: string;
   trabajadores_nombres?: string[];
   obras_nombres?: string[];
+  errores_24h_count?: number;
+  ultima_actividad?: string | null;
+  motivo_estado?: string | null;
+  stripe_event?: "paid" | "failed" | "canceled" | "trialing" | null;
+  historial_audit?: RegistroAuditoria[];
 };
 
 /** Un fallo guardado en errores_app (solo lo ve el admin de la plataforma). */

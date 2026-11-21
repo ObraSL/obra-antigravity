@@ -44,6 +44,39 @@ export function MiembroProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const cargar = useCallback(async () => {
+    // Si estamos en Modo Inspección, usamos los datos reales de ESA empresa
+    if (typeof window !== "undefined") {
+      const rawInspeccion = localStorage.getItem("obra_admin_inspeccion_empresa");
+      if (rawInspeccion) {
+        try {
+          const empresa = JSON.parse(rawInspeccion);
+          const esBloqueada = Boolean(
+            empresa.bloqueada ||
+              (empresa.activa_hasta && new Date(empresa.activa_hasta).getTime() <= Date.now())
+          );
+          setMiembro({
+            user_id: `user-${empresa.id}`,
+            nombre: empresa.responsable_nombre || "Director",
+            email: empresa.email_contacto || "director@empresa.com",
+            rol: "dueno",
+            obra_id: null,
+            aprobado: true,
+            trabajador_id: null,
+            created_at: empresa.created_at || new Date().toISOString(),
+            aviso_control_leido_en: new Date().toISOString(),
+            aviso_control_version: "v2",
+            es_soporte: true,
+          });
+          setSuscripcionInactiva(esBloqueada);
+          setEsAdminPlataforma(false); // Para que no redirija fuera de la vista de empresa
+          setLoading(false);
+          return;
+        } catch {
+          /* fallback */
+        }
+      }
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -99,6 +132,8 @@ export function MiembroProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     cargar();
+    window.addEventListener("obra_admin_inspeccion_changed", cargar);
+    return () => window.removeEventListener("obra_admin_inspeccion_changed", cargar);
   }, [cargar]);
 
   const guardarNombre = useCallback(

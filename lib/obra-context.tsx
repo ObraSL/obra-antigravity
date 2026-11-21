@@ -83,6 +83,46 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
   );
 
   const cargar = useCallback(async () => {
+    // Si estamos en Modo Inspección de Superadmin, cargamos las obras reales de ESA empresa
+    if (typeof window !== "undefined") {
+      const rawInspeccion = localStorage.getItem("obra_admin_inspeccion_empresa");
+      if (rawInspeccion) {
+        try {
+          const empresa = JSON.parse(rawInspeccion);
+          const nombres: string[] =
+            empresa.obras_nombres && empresa.obras_nombres.length > 0
+              ? empresa.obras_nombres
+              : [`${empresa.nombre} - Obra Principal`];
+
+          const obrasInspeccion: Obra[] = nombres.map((nom: string, idx: number) => ({
+            id: `obra-${empresa.id}-${idx}`,
+            owner_id: empresa.id,
+            nombre: nom,
+            direccion:
+              empresa.sector === "Energía solar y fotovoltaica"
+                ? "Camino de los Huertos, Parcela 14, 28001 Madrid"
+                : empresa.sector === "Electricidad e iluminación"
+                ? "Calle Gran Vía 48, Planta 3, 28013 Madrid"
+                : "Avenida de los Álamos 12, 28223 Pozuelo de Alarcón",
+            activa: true,
+            lat: 40.4168,
+            lng: -3.7038,
+            radio_metros: 100,
+            hora_inicio_turno: "08:00",
+            minutos_antes_permitidos: 30,
+            created_at: empresa.created_at || new Date().toISOString(),
+          }));
+
+          setObras(obrasInspeccion);
+          setObraIdState(obrasInspeccion[0]?.id ?? null);
+          setLoading(false);
+          return;
+        } catch {
+          /* fallback a BD */
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from("obras")
       .select("*")
@@ -107,6 +147,8 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     cargar();
+    window.addEventListener("obra_admin_inspeccion_changed", cargar);
+    return () => window.removeEventListener("obra_admin_inspeccion_changed", cargar);
   }, [cargar]);
 
   const setObraId = useCallback((id: string) => {

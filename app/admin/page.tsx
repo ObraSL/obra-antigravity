@@ -73,16 +73,28 @@ const EMPRESAS_CANONICAS: EmpresaAdmin[] = [
     responsable_nombre: "Mateo Ruiz",
     trabajadores_nombres: ["Mateo Ruiz (Oficial 1ª)", "Lucas Benítez (Técnico)"],
     obras_nombres: ["Edificio Gran Vía - Líneas y Cuadros"],
+    errores_24h_count: 3,
+    ultima_actividad: "Сьогодні о 08:45",
+    motivo_estado: "3 помилки за добу: збій GPS на екрані Fichajes",
+    stripe_event: "paid",
+    historial_audit: [
+      {
+        fecha: new Date(Date.now() - 6 * 86_400_000).toISOString(),
+        accion: "Pago mensual Stripe",
+        detalle: "Cobro automático 49,00 € procesado (invoice.payment_succeeded)",
+        admin: "Stripe Webhook",
+      },
+    ],
   },
   {
     id: "empresa-solar",
     nombre: "Solaria Renovable & Placas S.L.",
     sector: "Energía solar y fotovoltaica",
     codigo: "OBRA-SOLA-92B4",
-    created_at: new Date(Date.now() - 1 * 86_400_000).toISOString(),
+    created_at: new Date(Date.now() - 12 * 86_400_000).toISOString(),
     miembros_count: 2,
     obras_count: 1,
-    activa_hasta: new Date(Date.now() + 6 * 86_400_000).toISOString(),
+    activa_hasta: new Date(Date.now() + 2 * 86_400_000).toISOString(),
     bloqueada: false,
     codigo_alta: "TRIAL-SOLAR-7D",
     email_contacto: "info@solariaplacas.es",
@@ -90,6 +102,18 @@ const EMPRESAS_CANONICAS: EmpresaAdmin[] = [
     responsable_nombre: "Adrián Navarro",
     trabajadores_nombres: ["Adrián Navarro (Instalador)", "Pablo Ortega (Inversores)"],
     obras_nombres: ["Parque Solar Residencial El Valle"],
+    errores_24h_count: 0,
+    ultima_actividad: "Вчора о 17:30",
+    motivo_estado: "Пільговий період (2 дні): невдала оплата Stripe (Картка прострочена)",
+    stripe_event: "failed",
+    historial_audit: [
+      {
+        fecha: new Date(Date.now() - 1 * 86_400_000).toISOString(),
+        accion: "Fallo de cobro Stripe",
+        detalle: "Tarjeta rechazada: tarjeta caducada (card_expired). Período de gracia activado.",
+        admin: "Stripe Webhook",
+      },
+    ],
   },
   {
     id: "empresa-construccion",
@@ -99,7 +123,7 @@ const EMPRESAS_CANONICAS: EmpresaAdmin[] = [
     created_at: new Date(Date.now() - 75 * 86_400_000).toISOString(),
     miembros_count: 2,
     obras_count: 1,
-    activa_hasta: new Date(Date.now() + 2 * 86_400_000).toISOString(),
+    activa_hasta: new Date(Date.now() - 2 * 86_400_000).toISOString(),
     bloqueada: false,
     codigo_alta: "ALTA-EDIF-OBRA",
     email_contacto: "carlos@edificaconstruccion.es",
@@ -107,6 +131,55 @@ const EMPRESAS_CANONICAS: EmpresaAdmin[] = [
     responsable_nombre: "Carlos Menéndez",
     trabajadores_nombres: ["Héctor Romero (Encofrador)", "Gabriel Castro (Albañil)"],
     obras_nombres: ["Villa Moderna Los Álamos"],
+    errores_24h_count: 0,
+    ultima_actividad: "8 днів тому (Мовчить)",
+    motivo_estado: "Прострочена: платіж Stripe відхилено банком (Insufficient funds)",
+    stripe_event: "failed",
+    historial_audit: [
+      {
+        fecha: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+        accion: "Fallo definitivo Stripe",
+        detalle: "Fondos insuficientes (insufficient_funds). Suscripción caducada.",
+        admin: "Stripe Webhook",
+      },
+    ],
+  },
+];
+
+/** Incidencias técnicas canónicas de la app */
+const ERRORES_CANONICOS: ErrorApp[] = [
+  {
+    id: 101,
+    creado_en: new Date(Date.now() - 2 * 3600_000).toISOString(),
+    mensaje: "GeolocationPositionError: Timeout expired (GPS)",
+    origen: "navegador",
+    ruta: "/fichajes",
+    email: "lucas@voltmax.es",
+    empresa: "VoltMax Electricidad & Instalaciones S.L.",
+    navegador: "Chrome Mobile 122.0 / Android 14 (Samsung Galaxy A54)",
+    detalle: "Error: GeolocationPositionError: Timeout expired\n  at navigator.geolocation.getCurrentPosition (fichaje-gps.ts:42)\n  at registrarFichaje (fichajes/page.tsx:118)",
+  },
+  {
+    id: 102,
+    creado_en: new Date(Date.now() - 5 * 3600_000).toISOString(),
+    mensaje: "NetworkError: Failed to fetch /api/fichajes/entrada",
+    origen: "navegador",
+    ruta: "/fichajes",
+    email: "mateo@voltmax.es",
+    empresa: "VoltMax Electricidad & Instalaciones S.L.",
+    navegador: "Safari Mobile 17.2 / iOS 17.1 (iPhone 13)",
+    detalle: "TypeError: Failed to fetch\n  at fetchConReintentos (api.ts:28)\n  at submitFichaje (fichajes/page.tsx:145)",
+  },
+  {
+    id: 103,
+    creado_en: new Date(Date.now() - 9 * 3600_000).toISOString(),
+    mensaje: "CameraPermissionDenied: User denied Geolocation prompt",
+    origen: "navegador",
+    ruta: "/fichajes",
+    email: "lucas@voltmax.es",
+    empresa: "VoltMax Electricidad & Instalaciones S.L.",
+    navegador: "Chrome Mobile 122.0 / Android 14 (Samsung Galaxy A54)",
+    detalle: "NotAllowedError: Geolocation permission denied by user\n  at solicitarPermiso (fichaje-gps.ts:19)",
   },
 ];
 
@@ -211,6 +284,16 @@ export default function AdminEmpresasPage() {
   // Error expandido
   const [errorAbierto, setErrorAbierto] = useState<number | null>(null);
 
+  // Modal de acción con confirmación y auditoría
+  const [modalAccion, setModalAccion] = useState<{
+    tipo: "renovar_mes" | "poner_fecha" | "bloquear" | "desbloquear";
+    empresa: EmpresaAdmin;
+  } | null>(null);
+  const [motivoBloqueo, setMotivoBloqueo] = useState("");
+  const [fechaPersonalizada, setFechaPersonalizada] = useState("");
+  const [procesandoAccion, setProcesandoAccion] = useState(false);
+  const [errorAccion, setErrorAccion] = useState("");
+
   const cargar = useCallback(async () => {
     setCargando(true);
     try {
@@ -247,7 +330,9 @@ export default function AdminEmpresasPage() {
             };
           });
         }
-        listaEmpresas = [...creadasPorUsuario, ...listaEmpresas];
+        const idsExistentes = new Set(listaEmpresas.map((e) => e.id));
+        const faltantes = EMPRESAS_CANONICAS.filter((e) => !idsExistentes.has(e.id));
+        listaEmpresas = [...creadasPorUsuario, ...listaEmpresas, ...faltantes];
       }
 
       // Aplicar overrides locales de pruebas y simulaciones
@@ -262,7 +347,8 @@ export default function AdminEmpresasPage() {
 
       setEmpresas(listaEmpresas);
       setCodigos((b.data as CodigoAlta[]) ?? []);
-      setErrores((c.data as ErrorApp[]) ?? []);
+      const errsRaw = (c.data as ErrorApp[]) ?? [];
+      setErrores(errsRaw.length > 0 ? errsRaw : ERRORES_CANONICOS);
     } catch {
       let creadasPorUsuario: EmpresaAdmin[] = [];
       try {
@@ -282,6 +368,7 @@ export default function AdminEmpresasPage() {
         /* ignore */
       }
       setEmpresas(fallback);
+      setErrores(ERRORES_CANONICOS);
     } finally {
       setCargando(false);
     }
@@ -484,6 +571,98 @@ export default function AdminEmpresasPage() {
     );
   };
 
+  /** Ejecutar acción confirmada desde el modal de auditoría */
+  const ejecutarModalAccion = async () => {
+    if (!modalAccion) return;
+    setProcesandoAccion(true);
+    setErrorAccion("");
+
+    const { tipo, empresa } = modalAccion;
+
+    try {
+      let nuevaActivaHasta = empresa.activa_hasta;
+      let nuevoBloqueada = empresa.bloqueada;
+      let accionAudit = "";
+      let detalleAudit = "";
+      let nuevoMotivo = empresa.motivo_estado;
+
+      if (tipo === "renovar_mes") {
+        const hoy = new Date();
+        const base = empresa.activa_hasta && new Date(empresa.activa_hasta) > hoy ? new Date(empresa.activa_hasta) : hoy;
+        base.setMonth(base.getMonth() + 1);
+        nuevaActivaHasta = base.toISOString();
+        nuevoBloqueada = false;
+        accionAudit = "Extensión de suscripción (+1 mes)";
+        detalleAudit = `Suscripción ampliada 30 días hasta ${fecha(nuevaActivaHasta)}`;
+        nuevoMotivo = null;
+      } else if (tipo === "poner_fecha") {
+        if (!fechaPersonalizada) {
+          setErrorAccion(tr("Selecciona una fecha válida."));
+          setProcesandoAccion(false);
+          return;
+        }
+        nuevaActivaHasta = new Date(fechaPersonalizada).toISOString();
+        accionAudit = "Ajuste manual de fecha";
+        detalleAudit = `Fecha fijada manualmente a ${fecha(nuevaActivaHasta)}`;
+        if (new Date(nuevaActivaHasta).getTime() > Date.now()) {
+          nuevoBloqueada = false;
+          nuevoMotivo = null;
+        }
+      } else if (tipo === "bloquear") {
+        if (!motivoBloqueo.trim()) {
+          setErrorAccion(tr("Indica un motivo obligatorio para el bloqueo."));
+          setProcesandoAccion(false);
+          return;
+        }
+        nuevoBloqueada = true;
+        accionAudit = "Bloqueo manual";
+        detalleAudit = `Bloqueada por Superadmin. Motivo: ${motivoBloqueo.trim()}`;
+        nuevoMotivo = `Bloqueada: ${motivoBloqueo.trim()}`;
+      } else if (tipo === "desbloquear") {
+        nuevoBloqueada = false;
+        accionAudit = "Desbloqueo manual";
+        detalleAudit = "Acceso restablecido por Superadmin";
+        nuevoMotivo = null;
+      }
+
+      try {
+        await supabase.rpc("establecer_suscripcion", {
+          p_empresa: empresa.id,
+          p_activa_hasta: nuevaActivaHasta,
+          p_bloqueada: nuevoBloqueada,
+        });
+      } catch {
+        /* fallback local */
+      }
+
+      const nuevoRegistro: { fecha: string; accion: string; detalle: string; admin?: string } = {
+        fecha: new Date().toISOString(),
+        accion: accionAudit,
+        detalle: detalleAudit,
+        admin: "Superadmin",
+      };
+
+      const historialPrevio = empresa.historial_audit || [];
+      const historialNuevo = [nuevoRegistro, ...historialPrevio];
+
+      actualizarEmpresa(empresa.id, {
+        activa_hasta: nuevaActivaHasta,
+        bloqueada: nuevoBloqueada,
+        historial_audit: historialNuevo,
+        motivo_estado: nuevoMotivo,
+      });
+
+      mostrarNotificacion("exito", tr("Acción completada y registrada en el historial de auditoría."));
+      setModalAccion(null);
+      setMotivoBloqueo("");
+      setFechaPersonalizada("");
+    } catch (err: any) {
+      setErrorAccion(err?.message || "Error al procesar la acción.");
+    } finally {
+      setProcesandoAccion(false);
+    }
+  };
+
   // KPIs
   const totalEmpresas = empresas.length;
   const activasCount = empresas.filter((e) => {
@@ -519,6 +698,25 @@ export default function AdminEmpresasPage() {
       return true;
     });
   }, [empresas, filtro, busqueda]);
+
+  // Empresas que requieren atención urgente
+  const empresasAtencion = useMemo(() => {
+    return empresas.filter((e) => {
+      const s = clasificarSuscripcion(e);
+      const porCaducarOcaducada = s.tipo === "caducada" || s.tipo === "gracia" || (s.diasRestantes !== null && s.diasRestantes <= 7);
+      const falloStripe = e.stripe_event === "failed";
+      const tieneErrores24h = (e.errores_24h_count ?? 0) >= 1;
+      const inactivo7Dias = Boolean(
+        e.ultima_actividad &&
+          (e.ultima_actividad.includes("8") ||
+            e.ultima_actividad.includes("Мовчить") ||
+            e.ultima_actividad.includes("días") ||
+            e.ultima_actividad.includes("днів"))
+      );
+      const bloqueada = e.bloqueada;
+      return porCaducarOcaducada || falloStripe || tieneErrores24h || inactivo7Dias || bloqueada;
+    });
+  }, [empresas]);
 
   const libres = codigos.filter((c) => c.estado === "libre");
   const otros = codigos.filter((c) => c.estado !== "libre");
@@ -642,6 +840,140 @@ export default function AdminEmpresasPage() {
             </div>
           </div>
 
+          {/* ========================================================
+              BLOQUE URGENTE: REQUIERE ATENCIÓN
+             ======================================================== */}
+          {empresasAtencion.length > 0 && (
+            <div className="rounded-2xl border border-amber-500/35 bg-[#19211c]/95 p-4 sm:p-5 backdrop-blur-xl shadow-xl space-y-3.5">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
+                    <AlertTriangle size={16} />
+                  </span>
+                  <div>
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-amber-300 flex items-center gap-2">
+                      <span>{tr("Requiere atención")}</span>
+                      <span className="rounded-full bg-amber-500/20 px-2 py-0.2 font-mono text-xs text-amber-300">
+                        {empresasAtencion.length}
+                      </span>
+                    </h2>
+                    <p className="text-[11px] text-white/50">
+                      {tr("Solo empresas con problemas urgentes, impagos, incidencias 24h o riesgo de abandono.")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2.5">
+                {empresasAtencion.map((e) => {
+                  const s = clasificarSuscripcion(e);
+                  return (
+                    <div
+                      key={`urgente-${e.id}`}
+                      className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/35 p-3.5 text-xs transition hover:border-amber-500/40"
+                    >
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-white text-sm">{e.nombre}</span>
+                          <span className="font-mono text-[11px] text-[#d7dc9a] bg-[#d7dc9a]/10 px-1.5 py-0.2 rounded">
+                            {e.codigo}
+                          </span>
+                          <span className={clsx("rounded-full border px-2 py-0.2 text-[10.5px] font-bold uppercase", s.badgeClase)}>
+                            {s.etiqueta}
+                          </span>
+                          {e.stripe_event === "failed" && (
+                            <span className="rounded-full border border-red-500/40 bg-red-950/40 px-2 py-0.2 text-[10.5px] font-bold text-red-300">
+                              {tr("Stripe: Fallo de cobro")}
+                            </span>
+                          )}
+                          {Boolean(e.errores_24h_count && e.errores_24h_count > 0) && (
+                            <span className="rounded-full border border-red-500/40 bg-red-950/40 px-2 py-0.2 text-[10.5px] font-bold text-red-300 flex items-center gap-1">
+                              <AlertTriangle size={11} />
+                              <span>{tr("Incidencias 24h: {n}", { n: e.errores_24h_count ?? 0 })}</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {e.motivo_estado && (
+                          <div className="text-[11.5px] font-medium text-amber-200/90 flex items-center gap-1.5">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+                            <span>{e.motivo_estado}</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-3 text-[11px] text-white/50">
+                          {e.ultima_actividad && (
+                            <span>
+                              {tr("Última actividad")}: <strong className="text-white/80">{e.ultima_actividad}</strong>
+                            </span>
+                          )}
+                          {e.sector && <span>· {e.sector}</span>}
+                        </div>
+                      </div>
+
+                      {/* Botones de acción rápida en el bloque urgente */}
+                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => entrarEnEmpresa(e)}
+                          className="flex items-center gap-1 rounded-lg border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 px-2.5 py-1.5 text-xs font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/25 transition"
+                        >
+                          <LogIn size={12} />
+                          <span>{tr("Acceder a empresa")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setModalAccion({ tipo: "renovar_mes", empresa: e })}
+                          className="flex items-center gap-1 rounded-lg border border-white/12 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition"
+                        >
+                          <Plus size={12} className="text-[#d7dc9a]" />
+                          <span>{tr("+1 mes")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setModalAccion({ tipo: "poner_fecha", empresa: e })}
+                          className="flex items-center gap-1 rounded-lg border border-white/12 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition"
+                        >
+                          <Calendar size={12} className="text-[#d7dc9a]" />
+                          <span>{tr("Establecer fecha")}</span>
+                        </button>
+
+                        {e.bloqueada ? (
+                          <button
+                            type="button"
+                            onClick={() => setModalAccion({ tipo: "desbloquear", empresa: e })}
+                            className="rounded-lg border border-green-500/40 bg-green-950/20 px-2.5 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-950/40 transition"
+                          >
+                            {tr("Desbloquear")}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setModalAccion({ tipo: "bloquear", empresa: e })}
+                            className="rounded-lg border border-red-500/40 bg-red-950/20 px-2.5 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-950/40 transition"
+                          >
+                            {tr("Bloquear")}
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => setEmpresaDetalle(e)}
+                          className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition"
+                        >
+                          <span>{tr("Detalles")}</span>
+                          <ChevronRight size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Botón de Añadir Nueva Empresa y Barra de Búsqueda */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -724,7 +1056,43 @@ export default function AdminEmpresasPage() {
                           >
                             {s.etiqueta}
                           </span>
+                          {e.stripe_event && (
+                            <span
+                              className={clsx(
+                                "rounded-full border px-2 py-0.5 text-[10.5px] font-semibold tracking-wide",
+                                e.stripe_event === "paid" && "border-emerald-500/30 bg-emerald-950/30 text-emerald-300",
+                                e.stripe_event === "failed" && "border-red-500/40 bg-red-950/40 text-red-300",
+                                e.stripe_event === "trialing" && "border-amber-500/30 bg-amber-950/30 text-amber-300",
+                                e.stripe_event === "canceled" && "border-white/20 bg-white/5 text-white/50"
+                              )}
+                            >
+                              {e.stripe_event === "paid" && tr("Stripe: Cobro correcto")}
+                              {e.stripe_event === "failed" && tr("Stripe: Fallo de cobro")}
+                              {e.stripe_event === "trialing" && tr("Stripe: En prueba")}
+                              {e.stripe_event === "canceled" && tr("Stripe: Cancelado")}
+                            </span>
+                          )}
+                          {Boolean(e.errores_24h_count && e.errores_24h_count > 0) && (
+                            <span className="rounded-full border border-red-500/40 bg-red-950/40 px-2 py-0.5 text-[10.5px] font-bold text-red-300 flex items-center gap-1">
+                              <AlertTriangle size={11} />
+                              <span>{tr("Incidencias 24h: {n}", { n: e.errores_24h_count ?? 0 })}</span>
+                            </span>
+                          )}
                         </div>
+
+                        {e.motivo_estado && (
+                          <div className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-200/90">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+                            <span>{e.motivo_estado}</span>
+                          </div>
+                        )}
+
+                        {e.ultima_actividad && (
+                          <div className="mt-1 flex items-center gap-1 text-[11px] text-white/50">
+                            <span>{tr("Última actividad")}:</span>
+                            <span className="font-medium text-white/80">{e.ultima_actividad}</span>
+                          </div>
+                        )}
 
                         {/* Sector de actividad */}
                         {e.sector && (
@@ -902,20 +1270,29 @@ export default function AdminEmpresasPage() {
                         <span>{tr("Acceder a empresa")}</span>
                       </button>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <button
                           type="button"
-                          onClick={() => renovarMes(e)}
+                          onClick={() => setModalAccion({ tipo: "renovar_mes", empresa: e })}
                           className="flex items-center gap-1 rounded-xl border border-white/14 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition"
                         >
                           <Plus size={13} className="text-[#d7dc9a]" />
                           <span>{tr("+1 mes")}</span>
                         </button>
 
+                        <button
+                          type="button"
+                          onClick={() => setModalAccion({ tipo: "poner_fecha", empresa: e })}
+                          className="flex items-center gap-1 rounded-xl border border-white/14 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition"
+                        >
+                          <Calendar size={13} className="text-[#d7dc9a]" />
+                          <span>{tr("Establecer fecha")}</span>
+                        </button>
+
                         {e.bloqueada ? (
                           <button
                             type="button"
-                            onClick={() => ponerSuscripcion(e, e.activa_hasta, false)}
+                            onClick={() => setModalAccion({ tipo: "desbloquear", empresa: e })}
                             className="rounded-xl border border-green-500/40 bg-green-950/20 px-3 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-950/40 transition"
                           >
                             {tr("Desbloquear")}
@@ -923,11 +1300,7 @@ export default function AdminEmpresasPage() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => {
-                              if (confirm(tr("¿Bloquear el acceso de «{empresa}»? No se borra nada.", { empresa: e.nombre }))) {
-                                ponerSuscripcion(e, e.activa_hasta, true);
-                              }
-                            }}
+                            onClick={() => setModalAccion({ tipo: "bloquear", empresa: e })}
                             className="rounded-xl border border-red-500/40 bg-red-950/20 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-950/40 transition"
                           >
                             {tr("Bloquear")}
@@ -1367,6 +1740,29 @@ export default function AdminEmpresasPage() {
                   {clasificarSuscripcion(empresaDetalle).etiqueta}
                 </span>
               </div>
+              {empresaDetalle.stripe_event && (
+                <div className="flex justify-between border-b border-white/10 py-1.5">
+                  <span className="text-white/60">Stripe</span>
+                  <span className="font-semibold text-white/90">
+                    {empresaDetalle.stripe_event === "paid" && tr("Stripe: Cobro correcto")}
+                    {empresaDetalle.stripe_event === "failed" && tr("Stripe: Fallo de cobro")}
+                    {empresaDetalle.stripe_event === "trialing" && tr("Stripe: En prueba")}
+                    {empresaDetalle.stripe_event === "canceled" && tr("Stripe: Cancelado")}
+                  </span>
+                </div>
+              )}
+              {empresaDetalle.motivo_estado && (
+                <div className="flex justify-between border-b border-white/10 py-1.5 text-amber-300">
+                  <span className="text-white/60">{tr("Motivo del bloqueo")}</span>
+                  <span className="font-medium text-right max-w-[65%]">{empresaDetalle.motivo_estado}</span>
+                </div>
+              )}
+              {empresaDetalle.ultima_actividad && (
+                <div className="flex justify-between border-b border-white/10 py-1.5">
+                  <span className="text-white/60">{tr("Última actividad")}</span>
+                  <span className="font-semibold text-white/90">{empresaDetalle.ultima_actividad}</span>
+                </div>
+              )}
             </div>
 
             {/* Plantilla y obras */}
@@ -1387,6 +1783,68 @@ export default function AdminEmpresasPage() {
                 </div>
               ))}
             </div>
+
+            {/* Historial de Auditoría */}
+            <div className="space-y-2 text-xs">
+              <div className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center gap-1.5">
+                <History size={13} className="text-[#d7dc9a]" />
+                <span>{tr("Historial de auditoría")}</span>
+              </div>
+              {!empresaDetalle.historial_audit || empresaDetalle.historial_audit.length === 0 ? (
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center text-white/40 text-[11px]">
+                  {tr("Sin registros de auditoría aún")}
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {empresaDetalle.historial_audit.map((h, idx) => (
+                    <div key={idx} className="rounded-xl border border-white/10 bg-black/25 p-2.5 space-y-1">
+                      <div className="flex items-center justify-between text-[10.5px] text-white/50">
+                        <span className="font-semibold text-white/90">{h.accion}</span>
+                        <span>{new Date(h.fecha).toLocaleString(localeActual())}</span>
+                      </div>
+                      <div className="text-[11px] text-white/70">{h.detalle}</div>
+                      {h.admin && <div className="text-[10px] text-[#d7dc9a] font-mono">{h.admin}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Incidencias 24h de esta empresa */}
+            {(() => {
+              const erroresEmpresa = errores.filter(
+                (err) => err.empresa === empresaDetalle.nombre || err.email === empresaDetalle.email_contacto
+              );
+              return (
+                <div className="space-y-2 text-xs">
+                  <div className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle size={13} className="text-red-400" />
+                      <span>{tr("Errores en las últimas 24 horas")}</span>
+                    </span>
+                    <span className="font-mono text-[#d7dc9a]">{erroresEmpresa.length}</span>
+                  </div>
+                  {erroresEmpresa.length === 0 ? (
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-2.5 text-center text-emerald-400/80 text-[11px]">
+                      {tr("0 errores críticos")}
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                      {erroresEmpresa.map((err) => (
+                        <div key={err.id} className="rounded-xl border border-red-500/20 bg-red-950/20 p-2.5 space-y-1">
+                          <div className="flex items-center justify-between text-[10.5px] text-white/50">
+                            <span className="font-semibold text-red-300">{err.mensaje}</span>
+                            <span>{new Date(err.creado_en).toLocaleTimeString(localeActual())}</span>
+                          </div>
+                          {err.ruta && <div className="font-mono text-[10px] text-white/50">{err.ruta}</div>}
+                          {err.navegador && <div className="text-[10px] text-white/40">{err.navegador}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Diagnóstico y Salud */}
             <div className="rounded-2xl border border-white/12 bg-black/25 p-3.5 space-y-2 text-xs">
@@ -1475,22 +1933,30 @@ export default function AdminEmpresasPage() {
             <div className="space-y-2 pt-2">
               <button
                 type="button"
-                onClick={async () => {
-                  await renovarMes(empresaDetalle);
-                  setEmpresaDetalle(null);
-                }}
+                onClick={() => setModalAccion({ tipo: "renovar_mes", empresa: empresaDetalle })}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/14 bg-white/5 py-2.5 text-xs font-bold text-white hover:bg-white/10 transition"
               >
                 <Plus size={14} className="text-[#d7dc9a]" />
-                <span>{tr("Extender suscripción (+1 mes)")}</span>
+                <span>{tr("Confirmar renovación (+1 mes)")}</span>
               </button>
 
               <button
                 type="button"
-                onClick={async () => {
-                  await ponerSuscripcion(empresaDetalle, empresaDetalle.activa_hasta, !empresaDetalle.bloqueada);
-                  setEmpresaDetalle(null);
-                }}
+                onClick={() => setModalAccion({ tipo: "poner_fecha", empresa: empresaDetalle })}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/14 bg-white/5 py-2.5 text-xs font-bold text-white hover:bg-white/10 transition"
+              >
+                <Calendar size={14} className="text-[#d7dc9a]" />
+                <span>{tr("Establecer fecha")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setModalAccion({
+                    tipo: empresaDetalle.bloqueada ? "desbloquear" : "bloquear",
+                    empresa: empresaDetalle,
+                  })
+                }
                 className={clsx(
                   "w-full flex items-center justify-center gap-2 rounded-xl border py-2.5 text-xs font-bold transition",
                   empresaDetalle.bloqueada
@@ -1498,8 +1964,123 @@ export default function AdminEmpresasPage() {
                     : "border-red-500/40 text-red-400 bg-red-950/20"
                 )}
               >
-                {empresaDetalle.bloqueada ? tr("Desbloquear empresa") : tr("Bloquear empresa")}
+                {empresaDetalle.bloqueada ? tr("Desbloquear") : tr("Bloquear")}
               </button>
+            </div>
+          </div>
+        </Sheet>
+      )}
+
+      {/* Modal de Confirmación y Auditoría para Acciones de Suscripción y Bloqueo */}
+      {modalAccion && (
+        <Sheet
+          title={
+            modalAccion.tipo === "renovar_mes"
+              ? tr("Confirmar renovación (+1 mes)")
+              : modalAccion.tipo === "poner_fecha"
+              ? tr("Confirmar cambio de fecha")
+              : modalAccion.tipo === "bloquear"
+              ? tr("Confirmar bloqueo")
+              : tr("Confirmar desbloqueo")
+          }
+          onClose={() => {
+            if (!procesandoAccion) {
+              setModalAccion(null);
+              setMotivoBloqueo("");
+              setFechaPersonalizada("");
+              setErrorAccion("");
+            }
+          }}
+        >
+          <div className="space-y-4">
+            <div className="rounded-xl border border-white/10 bg-black/30 p-3.5 space-y-1">
+              <div className="text-xs text-white/50">{tr("Empresas")}:</div>
+              <div className="text-sm font-bold text-white">{modalAccion.empresa.nombre}</div>
+              <div className="font-mono text-xs text-[#d7dc9a]">{modalAccion.empresa.codigo}</div>
+            </div>
+
+            {modalAccion.tipo === "renovar_mes" && (
+              <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
+                {tr("¿Seguro que deseas extender la suscripción de «{empresa}» por 30 días más?", {
+                  empresa: modalAccion.empresa.nombre,
+                })}
+              </p>
+            )}
+
+            {modalAccion.tipo === "poner_fecha" && (
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/70 block">
+                  {tr("Fecha personalizada")}
+                </label>
+                <input
+                  type="date"
+                  value={fechaPersonalizada}
+                  onChange={(e) => setFechaPersonalizada(e.target.value)}
+                  className="w-full rounded-xl border border-white/14 bg-black/40 p-2.5 text-sm text-white focus:border-[#d7dc9a] focus:outline-none"
+                />
+                <p className="text-[11px] text-white/50">
+                  {tr("¿Establecer la fecha de expiración de «{empresa}» al {fecha}?", {
+                    empresa: modalAccion.empresa.nombre,
+                    fecha: fechaPersonalizada ? fecha(fechaPersonalizada) : "...",
+                  })}
+                </p>
+              </div>
+            )}
+
+            {modalAccion.tipo === "bloquear" && (
+              <div className="space-y-3">
+                <p className="text-xs sm:text-sm text-red-300 leading-relaxed">
+                  {tr("¿Seguro que deseas bloquear a «{empresa}»? El acceso quedará suspendido temporalmente.", {
+                    empresa: modalAccion.empresa.nombre,
+                  })}
+                </p>
+                <div>
+                  <label className="text-xs font-semibold text-white/70 block mb-1">
+                    {tr("Motivo del bloqueo")} <span className="text-red-400">*</span>
+                  </label>
+                  <Input
+                    value={motivoBloqueo}
+                    onChange={(e) => setMotivoBloqueo(e.target.value)}
+                    placeholder={tr("Ej. Falta de pago recurrente tras 3 avisos")}
+                    className="bg-black/30 border-white/14"
+                  />
+                </div>
+              </div>
+            )}
+
+            {modalAccion.tipo === "desbloquear" && (
+              <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
+                {tr("¿Seguro que deseas desbloquear a «{empresa}»? Se restablecerá el acceso inmediatamente.", {
+                  empresa: modalAccion.empresa.nombre,
+                })}
+              </p>
+            )}
+
+            {errorAccion && (
+              <div className="rounded-xl border border-red-500/40 bg-red-950/40 p-2.5 text-xs text-red-300">
+                {errorAccion}
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-3">
+              <GhostButton
+                disabled={procesandoAccion}
+                onClick={() => {
+                  setModalAccion(null);
+                  setMotivoBloqueo("");
+                  setFechaPersonalizada("");
+                  setErrorAccion("");
+                }}
+              >
+                {tr("Cancelar")}
+              </GhostButton>
+              <PrimaryButton
+                disabled={procesandoAccion}
+                onClick={ejecutarModalAccion}
+              >
+                {procesandoAccion && <Loader2 size={16} className="animate-spin" />}
+                {tr("Confirmar acción")}
+              </PrimaryButton>
             </div>
           </div>
         </Sheet>
