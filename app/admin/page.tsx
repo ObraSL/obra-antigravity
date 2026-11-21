@@ -42,7 +42,7 @@ import {
   History,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import type { CodigoAlta, EmpresaAdmin, ErrorApp } from "@/lib/types";
+import type { CodigoAlta, EmpresaAdmin, ErrorApp, RegistroAuditoria } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { Empty } from "@/components/ui/Empty";
 import { GhostButton, PrimaryButton } from "@/components/ui/Button";
@@ -52,6 +52,20 @@ import { localeActual, tr, trN } from "@/lib/i18n";
 import clsx from "clsx";
 
 const fecha = (iso: string) => new Date(iso).toLocaleDateString(localeActual());
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const esUuidReal = (id: string) => UUID_RE.test(id);
+
+/** Formatea marcas de tiempo ISO recibidas de BD manteniendo textos legibles de demo. */
+function formatearUltimaActividad(valor: string | null | undefined): string | null {
+  if (!valor) return null;
+  if (!valor.includes("T") || Number.isNaN(Date.parse(valor))) return valor;
+  const dt = new Date(valor);
+  const dias = Math.floor((Date.now() - dt.getTime()) / 86_400_000);
+  if (dias >= 7) return `${dias} днів тому (Мовчить)`;
+  if (dias >= 2) return dt.toLocaleDateString(localeActual());
+  const hora = dt.toLocaleTimeString(localeActual(), { hour: "2-digit", minute: "2-digit" });
+  return dias === 1 ? `Вчора о ${hora}` : `Сьогодні о ${hora}`;
+}
 
 type FiltroEstado = "todas" | "activas" | "prueba" | "por_caducar" | "caducadas" | "bloqueadas";
 
@@ -319,17 +333,18 @@ export default function AdminEmpresasPage() {
       if (listaEmpresas.length === 0) {
         listaEmpresas = [...creadasPorUsuario, ...EMPRESAS_CANONICAS];
       } else {
-        if (duenosRes.data) {
-          const mapaDuenos = new Map(duenosRes.data.map((d) => [d.empresa_id, d]));
-          listaEmpresas = listaEmpresas.map((e) => {
-            const d = mapaDuenos.get(e.id);
-            return {
-              ...e,
-              email_contacto: e.email_contacto || d?.email || null,
-              responsable_nombre: e.responsable_nombre || d?.nombre || null,
-            };
-          });
-        }
+        const mapaDuenos = new Map((duenosRes.data ?? []).map((d) => [d.empresa_id, d]));
+        listaEmpresas = listaEmpresas.map((e) => {
+          const d = mapaDuenos.get(e.id);
+          return {
+            ...e,
+            email_contacto: e.email_contacto || d?.email || null,
+            responsable_nombre: e.responsable_nombre || d?.nombre || null,
+            errores_24h_count: Number(e.errores_24h_count ?? 0),
+            ultima_actividad: formatearUltimaActividad(e.ultima_actividad),
+            historial_audit: Array.isArray(e.historial_audit) ? e.historial_audit : [],
+          };
+        });
         const idsExistentes = new Set(listaEmpresas.map((e) => e.id));
         const faltantes = EMPRESAS_CANONICAS.filter((e) => !idsExistentes.has(e.id));
         listaEmpresas = [...creadasPorUsuario, ...listaEmpresas, ...faltantes];
@@ -491,14 +506,22 @@ export default function AdminEmpresasPage() {
     }, 7000);
   };
 
-  /** Actualizar estado de empresa y persistir en overrides de localStorage */
-  const actualizarEmpresa = (id: string, updates: Partial<EmpresaAdmin>) => {
+  /** Actualizar estado de empresa; en empresas demo persiste en localStorage overrides. */
+  const actualizarEmpresa = (
+    id: string,
+    updates: Partial<EmpresaAdmin>,
+    persistirOverride = !esUuidReal(id)
+  ) => {
     setEmpresas((prev) => {
       const updated = prev.map((item) => (item.id === id ? { ...item, ...updates } : item));
       try {
         const rawO = localStorage.getItem("obra_admin_empresa_overrides");
         const overrides = rawO ? JSON.parse(rawO) : {};
-        overrides[id] = { ...(overrides[id] || {}), ...updates };
+        if (persistirOverride) {
+          overrides[id] = { ...(overrides[id] || {}), ...updates };
+        } else {
+          delete overrides[id];
+        }
         localStorage.setItem("obra_admin_empresa_overrides", JSON.stringify(overrides));
       } catch {
         /* ignore */
@@ -625,17 +648,23 @@ export default function AdminEmpresasPage() {
         nuevoMotivo = null;
       }
 
-      try {
-        await supabase.rpc("establecer_suscripcion", {
+      if (esUuidReal(empresa.id)) {
+        const { error: rpcError } = await supabase.rpc("establecer_suscripcion", {
           p_empresa: empresa.id,
           p_activa_hasta: nuevaActivaHasta,
           p_bloqueada: nuevoBloqueada,
+          p_motivo: nuevoMotivo ?? null,
+          p_accion: accionAudit,
+          p_detalle: detalleAudit,
         });
-      } catch {
-        /* fallback local */
+        if (rpcError) {
+          setErrorAccion(rpcError.message || "Error al guardar en base de datos.");
+          setProcesandoAccion(false);
+          return;
+        }
       }
 
-      const nuevoRegistro: { fecha: string; accion: string; detalle: string; admin?: string } = {
+      const nuevoRegistro: RegistroAuditoria = {
         fecha: new Date().toISOString(),
         accion: accionAudit,
         detalle: detalleAudit,
@@ -645,12 +674,16 @@ export default function AdminEmpresasPage() {
       const historialPrevio = empresa.historial_audit || [];
       const historialNuevo = [nuevoRegistro, ...historialPrevio];
 
-      actualizarEmpresa(empresa.id, {
-        activa_hasta: nuevaActivaHasta,
-        bloqueada: nuevoBloqueada,
-        historial_audit: historialNuevo,
-        motivo_estado: nuevoMotivo,
-      });
+      actualizarEmpresa(
+        empresa.id,
+        {
+          activa_hasta: nuevaActivaHasta,
+          bloqueada: nuevoBloqueada,
+          historial_audit: historialNuevo,
+          motivo_estado: nuevoMotivo,
+        },
+        !esUuidReal(empresa.id)
+      );
 
       mostrarNotificacion("exito", tr("Acción completada y registrada en el historial de auditoría."));
       setModalAccion(null);
