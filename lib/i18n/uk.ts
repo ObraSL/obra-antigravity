@@ -891,4 +891,6 @@ export const uk: Record<string, string> = {
   "Traza del error (Stack)": "Стек помилки (Stack trace)",
   "Sin registros de auditoría aún": "Журнал аудиту порожній",
   "Ej. Falta de pago recurrente tras 3 avisos": "Напр. Несплата після 3 попереджень",
+  "Fichado sin conexión": "Відмітка без зв'язку",
+  "Fichado sin conexión · sync {hora}": "Відмітка без зв'язку · синхр. {hora}",
 };

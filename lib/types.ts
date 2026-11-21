@@ -150,6 +150,8 @@ export type Fichaje = {
   traido_por: string | null; // nombre de quien le trajo, escrito a mano
   hora_corregida: boolean; // la puso el dueño a mano, no se fichó en el momento
   confirmado_trabajador: boolean; // el trabajador vio la corrección y dijo que está bien
+  fichado_sin_conexion?: boolean; // enviado desde cola offline conservando la hora real del tap
+  sincronizado_en?: string | null; // momento real en que llegó al servidor
   // "dentro/fuera del radio de la obra" al fichar — no se guardan las
   // coordenadas exactas, solo esto y la distancia. null = no se pudo saber
   // (permiso denegado, obra sin ubicación puesta, o no aplica).

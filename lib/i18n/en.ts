@@ -873,4 +873,6 @@ export const en: Record<string, string> = {
   "Traza del error (Stack)": "Error stack trace",
   "Sin registros de auditoría aún": "No audit records yet",
   "Ej. Falta de pago recurrente tras 3 avisos": "Ex. Non-payment after 3 notices",
+  "Fichado sin conexión": "Offline stamp",
+  "Fichado sin conexión · sync {hora}": "Offline stamp · synced {hora}",
 };

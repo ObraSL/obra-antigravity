@@ -87,6 +87,7 @@ export function useFichajesPendientes(
             trabajador_id: item.trabajadorId,
             fecha: item.fecha,
             [item.campo]: item.hora,
+            fichado_sin_conexion: true,
             ...(item.ubicacionOk !== undefined ? { ubicacion_ok: item.ubicacionOk } : {}),
             ...(item.distanciaMetros !== undefined ? { distancia_metros: item.distanciaMetros } : {}),
           },

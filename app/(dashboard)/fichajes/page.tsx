@@ -378,8 +378,21 @@ function FichajesCuadrilla() {
                     })()}
                   </div>
 
-                  {(r?.hora_corregida || r?.confirmado_trabajador === false || r?.ubicacion_ok === false) && (
+                  {(r?.hora_corregida || r?.confirmado_trabajador === false || r?.ubicacion_ok === false || r?.fichado_sin_conexion) && (
                     <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                      {r.fichado_sin_conexion && (
+                        <div className="inline-flex items-center gap-1 rounded-full bg-[#d7dc9a]/15 px-2 py-0.5 text-[10.5px] font-medium text-[#d7dc9a]">
+                          <WifiOff size={10} />
+                          {r.sincronizado_en
+                            ? tr("Fichado sin conexión · sync {hora}", {
+                                hora: new Date(r.sincronizado_en).toLocaleTimeString(localeActual(), {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }),
+                              })
+                            : tr("Fichado sin conexión")}
+                        </div>
+                      )}
                       {r.hora_corregida && (
                         <div className="inline-flex items-center gap-1 rounded-full bg-white/12 px-2 py-0.5 text-[10.5px] font-medium text-white/90">
                           <PenLine size={10} /> {tr("Horas corregidas por el dueño")}

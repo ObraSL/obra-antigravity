@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { PagadoPor, Tarea } from "@/lib/types";
 import { avanceObraExacto, estadoTarea, posicionDia, rangoObra } from "@/lib/gantt";
 import { minutosTrabajados } from "@/lib/horas";
-import { pagadoPorMi, suma } from "@/lib/dinero";
+import { balanceObra, pagadoPorMi, suma } from "@/lib/dinero";
 import { Card } from "@/components/ui/Card";
 import { CifraAvance } from "@/components/marca/CifraAvance";
 import { Varillas, varillasPresupuesto, type Varilla } from "@/components/marca/Varillas";
@@ -135,8 +135,7 @@ function InicioGestor() {
 
   const mes = currentMonth();
   const gastosMes = gastos.filter((g) => g.fecha.slice(0, 7) === mes);
-  const gastado = suma(gastos);
-  const balance = Math.round((cobrado - gastado) * 100) / 100;
+  const { gastado, balance } = balanceObra([{ importe: cobrado }], gastos);
   const presupuesto = suma(tareas.map((t) => ({ importe: t.presupuesto })));
   const pctPresupuesto = presupuesto > 0 ? Math.round((gastado / presupuesto) * 100) : 0;
 

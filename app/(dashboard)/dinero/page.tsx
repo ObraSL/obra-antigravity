@@ -101,10 +101,10 @@ function Dinero() {
 
   const obra = balanceObra(cobros, gastosObra);
   const caja = miCaja(entregas, pagadoPorMiTodas);
-  // Dinero del jefe apuntado a esta obra en concreto: cuenta como dinero
-  // disponible de la obra (junto al cliente), igual que lo dice el saldo.
+  // Entregas del jefe apuntadas a esta obra: movimiento interno de caja
+  // (se muestra aparte para no alterar el balance real Cobrado − Gastado).
   const recibidoObra = esDueno ? suma(entregas.filter((e) => e.obra_id === obraActual.id)) : 0;
-  const balanceTotal = Math.round((obra.balance + recibidoObra) * 100) / 100;
+  const balanceTotal = obra.balance;
   const pctPresupuesto = presupuesto > 0 ? Math.round((obra.gastado / presupuesto) * 100) : 0;
   const nombreObra = (id: string | null) => obras.find((o) => o.id === id)?.nombre;
 
@@ -138,7 +138,6 @@ function Dinero() {
         </div>
         <div className="mt-2.5 flex flex-col gap-1.5 text-[13.5px]">
           <Linea texto={tr("Cobrado del cliente")} valor={obra.cobrado} />
-          {conCaja && recibidoObra > 0 && <Linea texto={tr("Recibido del jefe (esta obra)")} valor={recibidoObra} />}
           <Linea texto={tr("Gastado")} valor={obra.gastado} />
         </div>
         <div className="mt-2.5 flex items-baseline justify-between border-t border-obra-card-border pt-2.5">
@@ -155,6 +154,12 @@ function Dinero() {
             {fmtEUR(balanceTotal)}
           </span>
         </div>
+
+        {conCaja && recibidoObra > 0 && (
+          <div className="mt-2 border-t border-obra-card-border pt-2 text-[12.5px]">
+            <Linea texto={tr("Recibido del jefe (esta obra)")} valor={recibidoObra} />
+          </div>
+        )}
 
         {presupuesto > 0 && (
           <div className="mt-3 border-t border-obra-card-border pt-2.5">
