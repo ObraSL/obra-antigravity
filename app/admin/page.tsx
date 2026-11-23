@@ -329,8 +329,13 @@ export default function AdminEmpresasPage() {
   // Portapapeles
   const [copiado, setCopiado] = useState<string | null>(null);
 
-  // Error expandido
+  // Error expandido y estado del monitor IA/Telegram
   const [errorAbierto, setErrorAbierto] = useState<number | null>(null);
+  const [estadoBot, setEstadoBot] = useState<{
+    geminiConfigurado: boolean;
+    telegramConfigurado: boolean;
+  } | null>(null);
+  const [probandoBot, setProbandoBot] = useState(false);
 
   // Modal de acción con confirmación y auditoría
   const [modalAccion, setModalAccion] = useState<{
@@ -398,6 +403,18 @@ export default function AdminEmpresasPage() {
       setCodigos((b.data as CodigoAlta[]) ?? []);
       const errsRaw = (c.data as ErrorApp[]) ?? [];
       setErrores(errsRaw.length > 0 ? errsRaw : ERRORES_CANONICOS);
+
+      fetch("/api/monitor/alerta")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((m) => {
+          if (m && typeof m.geminiConfigurado === "boolean") {
+            setEstadoBot({
+              geminiConfigurado: m.geminiConfigurado,
+              telegramConfigurado: Boolean(m.telegramConfigurado),
+            });
+          }
+        })
+        .catch(() => undefined);
     } catch {
       let creadasPorUsuario: EmpresaAdmin[] = [];
       try {
@@ -723,6 +740,37 @@ export default function AdminEmpresasPage() {
       setErrorAccion(err?.message || "Error al procesar la acción.");
     } finally {
       setProcesandoAccion(false);
+    }
+  };
+
+  const probarBotMonitor = async () => {
+    setProbandoBot(true);
+    try {
+      const res = await fetch("/api/monitor/alerta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          origen: "servidor",
+          mensaje: "Prueba de monitoreo Control de Obra",
+          ruta: "/admin",
+          test: true,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (data?.telegramEnviado) {
+        mostrarNotificacion("exito", tr("Alerta de prueba enviada a Telegram."));
+      } else if (data?.ok) {
+        mostrarNotificacion(
+          "info",
+          tr("Diagnóstico IA generado. Configura TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en Vercel para recibir avisos.")
+        );
+      } else {
+        mostrarNotificacion("alerta", data?.error || "Error al probar el monitor.");
+      }
+    } catch {
+      mostrarNotificacion("alerta", "No se pudo conectar con /api/monitor/alerta.");
+    } finally {
+      setProbandoBot(false);
     }
   };
 
@@ -1513,6 +1561,46 @@ export default function AdminEmpresasPage() {
          ======================================================== */}
       {tabActiva === "errores" && (
         <div className="space-y-4">
+          {/* Estado compacto del monitor gratuito Gemini + Telegram */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/12 bg-[#19211c]/90 p-3.5 backdrop-blur-xl">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="flex items-center gap-1.5 font-bold text-white">
+                <BellRing size={14} className="text-[#d7dc9a]" />
+                <span>{tr("Monitor IA y Telegram")}:</span>
+              </span>
+              <span
+                className={clsx(
+                  "rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                  estadoBot?.geminiConfigurado
+                    ? "border-emerald-500/40 bg-emerald-950/35 text-emerald-300"
+                    : "border-amber-500/35 bg-amber-950/25 text-amber-300"
+                )}
+              >
+                Gemini AI · {estadoBot?.geminiConfigurado ? tr("Conectado") : tr("Sin configurar")}
+              </span>
+              <span
+                className={clsx(
+                  "rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                  estadoBot?.telegramConfigurado
+                    ? "border-emerald-500/40 bg-emerald-950/35 text-emerald-300"
+                    : "border-amber-500/35 bg-amber-950/25 text-amber-300"
+                )}
+              >
+                Telegram Bot · {estadoBot?.telegramConfigurado ? tr("Conectado") : tr("Sin configurar")}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              disabled={probandoBot}
+              onClick={probarBotMonitor}
+              className="flex items-center gap-1.5 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 px-3 py-1.5 text-xs font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/25 transition disabled:opacity-50"
+            >
+              {probandoBot ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+              <span>{tr("Probar bot")}</span>
+            </button>
+          </div>
+
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-white uppercase tracking-wider">

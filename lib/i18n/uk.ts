@@ -902,4 +902,10 @@ export const uk: Record<string, string> = {
   "Inactivas": "Неактивні",
   "Volver a la lista": "Назад до списку",
   "Con nosotros": "З нами",
+  "Monitor IA y Telegram": "Моніторинг AI та Telegram",
+  "Conectado": "Підключено",
+  "Sin configurar": "Не налаштовано",
+  "Probar bot": "Тест бота",
+  "Alerta de prueba enviada a Telegram.": "Тестове сповіщення надіслано в Telegram.",
+  "Diagnóstico IA generado. Configura TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en Vercel para recibir avisos.": "AI-діагноз сформовано. Додайте TELEGRAM_BOT_TOKEN та TELEGRAM_CHAT_ID у Vercel для отримання сповіщень.",
 };

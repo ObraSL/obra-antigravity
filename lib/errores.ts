@@ -21,18 +21,38 @@ export function reportarError(error: unknown, extra?: string) {
     enviados.add(clave);
 
     const digest = e && "digest" in e ? ` [digest ${(e as { digest?: string }).digest}]` : "";
+    const mensajeFinal = mensaje + digest;
+    const detalleFinal = [extra, e?.stack].filter(Boolean).join("\n").slice(0, 4000) || null;
+    const rutaActual = typeof location !== "undefined" ? location.pathname + location.search : null;
+    const navActual = typeof navigator !== "undefined" ? navigator.userAgent : null;
+
     void createClient()
       .rpc("registrar_error", {
         p_origen: "navegador",
-        p_mensaje: mensaje + digest,
-        p_detalle: [extra, e?.stack].filter(Boolean).join("\n").slice(0, 4000) || null,
-        p_ruta: typeof location !== "undefined" ? location.pathname + location.search : null,
-        p_navegador: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        p_mensaje: mensajeFinal,
+        p_detalle: detalleFinal,
+        p_ruta: rutaActual,
+        p_navegador: navActual,
       })
       .then(
         () => undefined,
         () => undefined
       );
+
+    if (typeof fetch !== "undefined") {
+      void fetch("/api/monitor/alerta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        keepalive: true,
+        body: JSON.stringify({
+          origen: "navegador",
+          mensaje: mensajeFinal,
+          detalle: detalleFinal,
+          ruta: rutaActual,
+          navegador: navActual,
+        }),
+      }).catch(() => undefined);
+    }
   } catch {
     /* nada */
   }

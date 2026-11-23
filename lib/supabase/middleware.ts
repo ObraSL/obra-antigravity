@@ -14,6 +14,7 @@ const PUBLIC_PATHS = [
   "/alta",
   "/api/alta",
   "/api/stripe",
+  "/api/monitor",
   "/plantilla-plan-obra.xlsx",
   "/galeria",
   "/privacidad",

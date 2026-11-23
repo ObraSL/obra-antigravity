@@ -884,4 +884,10 @@ export const en: Record<string, string> = {
   "Inactivas": "Inactive",
   "Volver a la lista": "Back to list",
   "Con nosotros": "With us",
+  "Monitor IA y Telegram": "AI & Telegram Monitor",
+  "Conectado": "Connected",
+  "Sin configurar": "Not configured",
+  "Probar bot": "Test bot",
+  "Alerta de prueba enviada a Telegram.": "Test alert sent to Telegram.",
+  "Diagnóstico IA generado. Configura TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en Vercel para recibir avisos.": "AI diagnosis generated. Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Vercel to receive alerts.",
 };
