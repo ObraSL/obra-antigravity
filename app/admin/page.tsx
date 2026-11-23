@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
+  ArrowLeft,
   Building2,
   Calendar,
   Check,
@@ -67,7 +68,7 @@ function formatearUltimaActividad(valor: string | null | undefined): string | nu
   return dias === 1 ? `Вчора о ${hora}` : `Сьогодні о ${hora}`;
 }
 
-type FiltroEstado = "todas" | "activas" | "prueba" | "por_caducar" | "caducadas" | "bloqueadas";
+type FiltroEstado = "todas" | "activas" | "pausadas" | "inactivas" | "atencion";
 
 /** 3 empresas reales canónicas solicitadas por el usuario */
 const EMPRESAS_CANONICAS: EmpresaAdmin[] = [
@@ -260,6 +261,39 @@ function clasificarSuscripcion(e: EmpresaAdmin): {
   };
 }
 
+/** Estado simple de 3 estados para lectura rápida en la lista principal. */
+function estadoSimple(e: EmpresaAdmin): {
+  clave: "activa" | "pausada" | "inactiva";
+  etiqueta: string;
+  clase: string;
+} {
+  if (e.bloqueada) {
+    return {
+      clave: "pausada",
+      etiqueta: tr("Pausada"),
+      clase: "border-amber-500/40 bg-amber-950/35 text-amber-300",
+    };
+  }
+  if (clasificarSuscripcion(e).tipo === "caducada") {
+    return {
+      clave: "inactiva",
+      etiqueta: tr("Inactiva"),
+      clase: "border-red-500/40 bg-red-950/35 text-red-400",
+    };
+  }
+  return {
+    clave: "activa",
+    etiqueta: tr("Activa"),
+    clase: "border-emerald-500/40 bg-emerald-950/30 text-emerald-400",
+  };
+}
+
+/** Calcula los días que lleva la empresa registrada en la plataforma. */
+function tiempoConNosotros(iso: string): string {
+  const dias = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
+  return `${dias} ${tr("días")}`;
+}
+
 export default function AdminEmpresasPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -274,8 +308,8 @@ export default function AdminEmpresasPage() {
   const [filtro, setFiltro] = useState<FiltroEstado>("todas");
   const [busqueda, setBusqueda] = useState("");
 
-  // Modal de detalles de empresa
-  const [empresaDetalle, setEmpresaDetalle] = useState<EmpresaAdmin | null>(null);
+  // Empresa seleccionada en la vista detalle de pantalla completa
+  const [empresaSeleccionadaId, setEmpresaSeleccionadaId] = useState<string | null>(null);
 
   // Modal de creación de empresa
   const [creandoEmpresaModal, setCreandoEmpresaModal] = useState(false);
@@ -528,10 +562,6 @@ export default function AdminEmpresasPage() {
       }
       return updated;
     });
-
-    if (empresaDetalle && empresaDetalle.id === id) {
-      setEmpresaDetalle((prev) => (prev ? { ...prev, ...updates } : null));
-    }
   };
 
   /** Simular expiración en 1 día y auto-renovación */
@@ -696,41 +726,11 @@ export default function AdminEmpresasPage() {
     }
   };
 
-  // KPIs
+  // Contadores simples para la vista de lista (Activa / Pausada / Inactiva)
   const totalEmpresas = empresas.length;
-  const activasCount = empresas.filter((e) => {
-    const s = clasificarSuscripcion(e);
-    return s.tipo === "activa" || s.tipo === "prueba" || s.tipo === "sin_caducidad";
-  }).length;
-  const porCaducarCount = empresas.filter((e) => clasificarSuscripcion(e).tipo === "gracia").length;
-  const bloqueadasCount = empresas.filter((e) => e.bloqueada || clasificarSuscripcion(e).tipo === "caducada").length;
-
-  // Filtrado de empresas
-  const empresasFiltradas = useMemo(() => {
-    return empresas.filter((e) => {
-      const s = clasificarSuscripcion(e);
-
-      // Filtro por píldoras
-      if (filtro === "activas" && s.tipo !== "activa" && s.tipo !== "sin_caducidad") return false;
-      if (filtro === "prueba" && s.tipo !== "prueba") return false;
-      if (filtro === "por_caducar" && s.tipo !== "gracia") return false;
-      if (filtro === "caducadas" && s.tipo !== "caducada") return false;
-      if (filtro === "bloqueadas" && !e.bloqueada) return false;
-
-      // Filtro por búsqueda
-      if (busqueda.trim()) {
-        const q = busqueda.toLowerCase().trim();
-        const coincideNombre = e.nombre.toLowerCase().includes(q);
-        const coincideCodigo = e.codigo.toLowerCase().includes(q);
-        const coincideSector = e.sector?.toLowerCase().includes(q) ?? false;
-        const coincideEmail = e.email_contacto?.toLowerCase().includes(q) ?? false;
-        const coincideResp = e.responsable_nombre?.toLowerCase().includes(q) ?? false;
-        if (!coincideNombre && !coincideCodigo && !coincideEmail && !coincideResp && !coincideSector) return false;
-      }
-
-      return true;
-    });
-  }, [empresas, filtro, busqueda]);
+  const activasSimpleCount = empresas.filter((e) => estadoSimple(e).clave === "activa").length;
+  const pausadasSimpleCount = empresas.filter((e) => estadoSimple(e).clave === "pausada").length;
+  const inactivasSimpleCount = empresas.filter((e) => estadoSimple(e).clave === "inactiva").length;
 
   // Empresas que requieren atención urgente
   const empresasAtencion = useMemo(() => {
@@ -750,6 +750,33 @@ export default function AdminEmpresasPage() {
       return porCaducarOcaducada || falloStripe || tieneErrores24h || inactivo7Dias || bloqueada;
     });
   }, [empresas]);
+
+  // Filtrado de empresas en la lista compacta
+  const empresasFiltradas = useMemo(() => {
+    const idsAtencion = new Set(empresasAtencion.map((a) => a.id));
+    return empresas.filter((e) => {
+      const st = estadoSimple(e);
+
+      if (filtro === "activas" && st.clave !== "activa") return false;
+      if (filtro === "pausadas" && st.clave !== "pausada") return false;
+      if (filtro === "inactivas" && st.clave !== "inactiva") return false;
+      if (filtro === "atencion" && !idsAtencion.has(e.id)) return false;
+
+      if (busqueda.trim()) {
+        const q = busqueda.toLowerCase().trim();
+        const coincideNombre = e.nombre.toLowerCase().includes(q);
+        const coincideCodigo = e.codigo.toLowerCase().includes(q);
+        const coincideSector = e.sector?.toLowerCase().includes(q) ?? false;
+        const coincideEmail = e.email_contacto?.toLowerCase().includes(q) ?? false;
+        const coincideResp = e.responsable_nombre?.toLowerCase().includes(q) ?? false;
+        if (!coincideNombre && !coincideCodigo && !coincideEmail && !coincideResp && !coincideSector) return false;
+      }
+
+      return true;
+    });
+  }, [empresas, empresasAtencion, filtro, busqueda]);
+
+  const empresaSeleccionada = empresas.find((e) => e.id === empresaSeleccionadaId) ?? null;
 
   const libres = codigos.filter((c) => c.estado === "libre");
   const otros = codigos.filter((c) => c.estado !== "libre");
@@ -806,7 +833,10 @@ export default function AdminEmpresasPage() {
 
         <button
           type="button"
-          onClick={() => setTabActiva("codigos")}
+          onClick={() => {
+            setTabActiva("codigos");
+            setEmpresaSeleccionadaId(null);
+          }}
           className={clsx(
             "flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-xs sm:text-sm font-bold transition",
             tabActiva === "codigos"
@@ -826,7 +856,10 @@ export default function AdminEmpresasPage() {
 
         <button
           type="button"
-          onClick={() => setTabActiva("errores")}
+          onClick={() => {
+            setTabActiva("errores");
+            setEmpresaSeleccionadaId(null);
+          }}
           className={clsx(
             "flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-xs sm:text-sm font-bold transition",
             tabActiva === "errores"
@@ -846,169 +879,12 @@ export default function AdminEmpresasPage() {
       </div>
 
       {/* ========================================================
-          PESTAÑA 1: GESTIÓN DE EMPRESAS Y LICENCIAS
+          PESTAÑA 1: LISTA COMPACTA -> PANTALLA DE UNA EMPRESA
          ======================================================== */}
-      {tabActiva === "empresas" && (
-        <div className="space-y-5">
-          {/* Tarjetas KPI de Resumen */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-2xl border border-white/12 bg-[#19211c]/80 p-3.5 backdrop-blur-xl">
-              <div className="text-[11px] font-medium text-white/50">{tr("Total empresas")}</div>
-              <div className="mt-1 font-mono text-2xl font-bold text-white">{totalEmpresas}</div>
-            </div>
-
-            <div className="rounded-2xl border border-white/12 bg-[#19211c]/80 p-3.5 backdrop-blur-xl">
-              <div className="text-[11px] font-medium text-[#d7dc9a]">{tr("Activas y prueba")}</div>
-              <div className="mt-1 font-mono text-2xl font-bold text-[#d7dc9a]">{activasCount}</div>
-            </div>
-
-            <div className="rounded-2xl border border-white/12 bg-[#19211c]/80 p-3.5 backdrop-blur-xl">
-              <div className="text-[11px] font-medium text-amber-400">{tr("Por caducar")}</div>
-              <div className="mt-1 font-mono text-2xl font-bold text-amber-400">{porCaducarCount}</div>
-            </div>
-
-            <div className="rounded-2xl border border-white/12 bg-[#19211c]/80 p-3.5 backdrop-blur-xl">
-              <div className="text-[11px] font-medium text-red-400">{tr("Bloqueadas")}</div>
-              <div className="mt-1 font-mono text-2xl font-bold text-red-400">{bloqueadasCount}</div>
-            </div>
-          </div>
-
-          {/* ========================================================
-              BLOQUE URGENTE: REQUIERE ATENCIÓN
-             ======================================================== */}
-          {empresasAtencion.length > 0 && (
-            <div className="rounded-2xl border border-amber-500/35 bg-[#19211c]/95 p-4 sm:p-5 backdrop-blur-xl shadow-xl space-y-3.5">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2.5">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
-                    <AlertTriangle size={16} />
-                  </span>
-                  <div>
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-amber-300 flex items-center gap-2">
-                      <span>{tr("Requiere atención")}</span>
-                      <span className="rounded-full bg-amber-500/20 px-2 py-0.2 font-mono text-xs text-amber-300">
-                        {empresasAtencion.length}
-                      </span>
-                    </h2>
-                    <p className="text-[11px] text-white/50">
-                      {tr("Solo empresas con problemas urgentes, impagos, incidencias 24h o riesgo de abandono.")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-2.5">
-                {empresasAtencion.map((e) => {
-                  const s = clasificarSuscripcion(e);
-                  return (
-                    <div
-                      key={`urgente-${e.id}`}
-                      className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/35 p-3.5 text-xs transition hover:border-amber-500/40"
-                    >
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-white text-sm">{e.nombre}</span>
-                          <span className="font-mono text-[11px] text-[#d7dc9a] bg-[#d7dc9a]/10 px-1.5 py-0.2 rounded">
-                            {e.codigo}
-                          </span>
-                          <span className={clsx("rounded-full border px-2 py-0.2 text-[10.5px] font-bold uppercase", s.badgeClase)}>
-                            {s.etiqueta}
-                          </span>
-                          {e.stripe_event === "failed" && (
-                            <span className="rounded-full border border-red-500/40 bg-red-950/40 px-2 py-0.2 text-[10.5px] font-bold text-red-300">
-                              {tr("Stripe: Fallo de cobro")}
-                            </span>
-                          )}
-                          {Boolean(e.errores_24h_count && e.errores_24h_count > 0) && (
-                            <span className="rounded-full border border-red-500/40 bg-red-950/40 px-2 py-0.2 text-[10.5px] font-bold text-red-300 flex items-center gap-1">
-                              <AlertTriangle size={11} />
-                              <span>{tr("Incidencias 24h: {n}", { n: e.errores_24h_count ?? 0 })}</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {e.motivo_estado && (
-                          <div className="text-[11.5px] font-medium text-amber-200/90 flex items-center gap-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
-                            <span>{e.motivo_estado}</span>
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-3 text-[11px] text-white/50">
-                          {e.ultima_actividad && (
-                            <span>
-                              {tr("Última actividad")}: <strong className="text-white/80">{e.ultima_actividad}</strong>
-                            </span>
-                          )}
-                          {e.sector && <span>· {e.sector}</span>}
-                        </div>
-                      </div>
-
-                      {/* Botones de acción rápida en el bloque urgente */}
-                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => entrarEnEmpresa(e)}
-                          className="flex items-center gap-1 rounded-lg border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 px-2.5 py-1.5 text-xs font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/25 transition"
-                        >
-                          <LogIn size={12} />
-                          <span>{tr("Acceder a empresa")}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setModalAccion({ tipo: "renovar_mes", empresa: e })}
-                          className="flex items-center gap-1 rounded-lg border border-white/12 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition"
-                        >
-                          <Plus size={12} className="text-[#d7dc9a]" />
-                          <span>{tr("+1 mes")}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setModalAccion({ tipo: "poner_fecha", empresa: e })}
-                          className="flex items-center gap-1 rounded-lg border border-white/12 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition"
-                        >
-                          <Calendar size={12} className="text-[#d7dc9a]" />
-                          <span>{tr("Establecer fecha")}</span>
-                        </button>
-
-                        {e.bloqueada ? (
-                          <button
-                            type="button"
-                            onClick={() => setModalAccion({ tipo: "desbloquear", empresa: e })}
-                            className="rounded-lg border border-green-500/40 bg-green-950/20 px-2.5 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-950/40 transition"
-                          >
-                            {tr("Desbloquear")}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setModalAccion({ tipo: "bloquear", empresa: e })}
-                            className="rounded-lg border border-red-500/40 bg-red-950/20 px-2.5 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-950/40 transition"
-                          >
-                            {tr("Bloquear")}
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => setEmpresaDetalle(e)}
-                          className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition"
-                        >
-                          <span>{tr("Detalles")}</span>
-                          <ChevronRight size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Botón de Añadir Nueva Empresa y Barra de Búsqueda */}
-          <div className="flex flex-col sm:flex-row gap-3">
+      {tabActiva === "empresas" && !empresaSeleccionada && (
+        <div className="space-y-4">
+          {/* Buscador + Nueva empresa */}
+          <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative flex-1">
               <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
               <input
@@ -1030,16 +906,19 @@ export default function AdminEmpresasPage() {
             </button>
           </div>
 
-          {/* Píldoras de Filtro Clicables */}
+          {/* Píldoras simples de filtro */}
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
             {(
               [
-                { id: "todas", label: tr("Todas") },
-                { id: "activas", label: tr("Activas") },
-                { id: "prueba", label: tr("Prueba") },
-                { id: "por_caducar", label: tr("Por caducar") },
-                { id: "caducadas", label: tr("Caducadas") },
-                { id: "bloqueadas", label: tr("Bloqueadas") },
+                { id: "todas", label: `${tr("Todas")} (${totalEmpresas})`, alerta: false },
+                { id: "activas", label: `${tr("Activas")} (${activasSimpleCount})`, alerta: false },
+                { id: "pausadas", label: `${tr("Pausadas")} (${pausadasSimpleCount})`, alerta: false },
+                { id: "inactivas", label: `${tr("Inactivas")} (${inactivasSimpleCount})`, alerta: false },
+                {
+                  id: "atencion",
+                  label: `${tr("Requiere atención")} (${empresasAtencion.length})`,
+                  alerta: empresasAtencion.length > 0,
+                },
               ] as const
             ).map((f) => (
               <button
@@ -1050,7 +929,9 @@ export default function AdminEmpresasPage() {
                   "rounded-full border px-3 py-1 font-semibold transition",
                   filtro === f.id
                     ? "border-[#d7dc9a] bg-[#d7dc9a]/15 text-[#d7dc9a]"
-                    : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                    : f.alerta
+                    ? "border-amber-500/35 bg-amber-950/25 text-amber-300 hover:bg-amber-950/40"
+                    : "border-white/10 bg-white/5 text-white/65 hover:bg-white/10 hover:text-white"
                 )}
               >
                 {f.label}
@@ -1058,7 +939,7 @@ export default function AdminEmpresasPage() {
             ))}
           </div>
 
-          {/* Lista de Empresas */}
+          {/* Lista compacta de 1 fila por empresa (escala a 100+ empresas sin saturar) */}
           {cargando ? (
             <div className="flex justify-center py-12">
               <Loader2 className="animate-spin text-[#d7dc9a]" size={26} />
@@ -1068,295 +949,407 @@ export default function AdminEmpresasPage() {
               {tr("No se encontraron empresas con ese filtro.")}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3.5">
+            <div className="overflow-hidden rounded-2xl border border-white/12 bg-[#19211c]/90 divide-y divide-white/8 shadow-lg backdrop-blur-xl">
               {empresasFiltradas.map((e) => {
-                const s = clasificarSuscripcion(e);
+                const st = estadoSimple(e);
                 return (
-                  <div
+                  <button
                     key={e.id}
-                    className="overflow-hidden rounded-2xl border border-white/12 bg-[#19211c]/90 p-4 sm:p-5 backdrop-blur-xl shadow-lg transition hover:border-white/20"
+                    type="button"
+                    onClick={() => setEmpresaSeleccionadaId(e.id)}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition hover:bg-white/[0.04] active:bg-white/[0.06]"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h2 className="text-base font-bold text-white">{e.nombre}</h2>
-                          {/* Badge de suscripción */}
-                          <span
-                            className={clsx(
-                              "rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider",
-                              s.badgeClase
-                            )}
-                          >
-                            {s.etiqueta}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-bold text-white">{e.nombre}</div>
+                      <div className="mt-0.5 flex items-center gap-2 text-[11px] text-white/45 flex-wrap">
+                        <span className="font-mono">{e.codigo}</span>
+                        {Boolean(e.errores_24h_count && e.errores_24h_count > 0) && (
+                          <span className="inline-flex items-center gap-1 rounded bg-red-950/50 px-1.5 py-0.2 font-semibold text-red-300 border border-red-500/30">
+                            <AlertTriangle size={10} />
+                            <span>{e.errores_24h_count ?? 0}</span>
                           </span>
-                          {e.stripe_event && (
-                            <span
-                              className={clsx(
-                                "rounded-full border px-2 py-0.5 text-[10.5px] font-semibold tracking-wide",
-                                e.stripe_event === "paid" && "border-emerald-500/30 bg-emerald-950/30 text-emerald-300",
-                                e.stripe_event === "failed" && "border-red-500/40 bg-red-950/40 text-red-300",
-                                e.stripe_event === "trialing" && "border-amber-500/30 bg-amber-950/30 text-amber-300",
-                                e.stripe_event === "canceled" && "border-white/20 bg-white/5 text-white/50"
-                              )}
-                            >
-                              {e.stripe_event === "paid" && tr("Stripe: Cobro correcto")}
-                              {e.stripe_event === "failed" && tr("Stripe: Fallo de cobro")}
-                              {e.stripe_event === "trialing" && tr("Stripe: En prueba")}
-                              {e.stripe_event === "canceled" && tr("Stripe: Cancelado")}
-                            </span>
-                          )}
-                          {Boolean(e.errores_24h_count && e.errores_24h_count > 0) && (
-                            <span className="rounded-full border border-red-500/40 bg-red-950/40 px-2 py-0.5 text-[10.5px] font-bold text-red-300 flex items-center gap-1">
-                              <AlertTriangle size={11} />
-                              <span>{tr("Incidencias 24h: {n}", { n: e.errores_24h_count ?? 0 })}</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {e.motivo_estado && (
-                          <div className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-amber-200/90">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
-                            <span>{e.motivo_estado}</span>
-                          </div>
                         )}
-
-                        {e.ultima_actividad && (
-                          <div className="mt-1 flex items-center gap-1 text-[11px] text-white/50">
-                            <span>{tr("Última actividad")}:</span>
-                            <span className="font-medium text-white/80">{e.ultima_actividad}</span>
-                          </div>
+                        {e.stripe_event === "failed" && (
+                          <span className="font-semibold text-red-400">Stripe</span>
                         )}
-
-                        {/* Sector de actividad */}
-                        {e.sector && (
-                          <div className="mt-1 flex items-center gap-1.5 text-xs text-white/50">
-                            {e.sector.includes("Electricidad") ? (
-                              <Zap size={13} className="text-[#d7dc9a]" />
-                            ) : e.sector.includes("solar") || e.sector.includes("Placas") ? (
-                              <Sun size={13} className="text-[#d7dc9a]" />
-                            ) : (
-                              <Hammer size={13} className="text-[#d7dc9a]" />
-                            )}
-                            <span>{e.sector}</span>
-                          </div>
-                        )}
-
-                        {/* Clave Permanente de la Empresa */}
-                        <div className="mt-2.5 flex items-center gap-2">
-                          <span className="text-xs text-white/50">{tr("Clave de licencia")}:</span>
-                          <button
-                            type="button"
-                            onClick={() => copiar(e.codigo)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#d7dc9a]/30 bg-[#d7dc9a]/10 px-2 py-0.5 font-mono text-xs font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/20 transition"
-                            title={tr("Copiar clave")}
-                          >
-                            <span>{e.codigo}</span>
-                            {copiado === e.codigo ? <Check size={12} /> : <Copy size={12} />}
-                          </button>
-                        </div>
-
-                        {/* Contacto del dueño */}
-                        <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-white/60">
-                          {e.responsable_nombre && (
-                            <span className="font-semibold text-white/80">{e.responsable_nombre}</span>
-                          )}
-                          {e.email_contacto && (
-                            <a
-                              href={`mailto:${e.email_contacto}`}
-                              className="flex items-center gap-1 text-[#d7dc9a] hover:underline"
-                            >
-                              <Mail size={12} /> {e.email_contacto}
-                            </a>
-                          )}
-                          {e.telefono_contacto && (
-                            <a
-                              href={`tel:${e.telefono_contacto}`}
-                              className="flex items-center gap-1 text-white/70 hover:underline"
-                            >
-                              <Phone size={12} /> {e.telefono_contacto}
-                            </a>
-                          )}
-                        </div>
-
-                        {/* Plantilla y obras */}
-                        {e.trabajadores_nombres && e.trabajadores_nombres.length > 0 && (
-                          <div className="mt-2 text-[11.5px] text-white/50">
-                            <span className="text-white/40">{tr("Trabajadores")}:</span>{" "}
-                            {e.trabajadores_nombres.join(" · ")}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Métricas y Cifras */}
-                      <div className="flex items-center gap-4 text-xs text-white/60 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-white/10">
-                        <div className="flex items-center gap-1.5">
-                          <Users size={14} className="text-white/40" />
-                          <span>{trN(e.miembros_count, "{n} miembro", "{n} miembros")}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Wrench size={14} className="text-white/40" />
-                          <span>{trN(e.obras_count, "{n} obra", "{n} obras")}</span>
-                        </div>
                       </div>
                     </div>
 
-                    {/* Política y Reglas de Suscripción */}
-                    <div className="mt-3.5 rounded-xl border border-white/8 bg-black/25 p-2.5 text-[11px] text-white/70 space-y-1.5">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <RotateCcw size={12} className="text-[#d7dc9a]" />
-                          <span className="font-semibold text-white">{tr("Auto-renovación: ACTIVA (Stripe)")}</span>
-                        </div>
-                        <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60">
-                          {tr("Regla de cancelación: mínimo 15 días antes del vencimiento")}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
-                        <span className="text-white/50 flex items-center gap-1">
-                          <ShieldCheck size={11} className="text-emerald-400" />
-                          {tr("Mismo código garantizado")}: <span className="font-mono text-[#d7dc9a]">{e.codigo}</span>
-                        </span>
-                        <span className="text-emerald-400/90 font-medium">
-                          {tr("0 errores críticos")} · {tr("Base de datos conectada")}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Laboratorio de Pruebas de Suscripción y Soporte Rápido */}
-                    <div className="mt-2.5 rounded-xl border border-[#d7dc9a]/25 bg-[#141b16]/80 p-2.5">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-[#d7dc9a] mb-2 flex items-center justify-between">
-                        <span>{tr("Pruebas de suscripción y soporte rápido")}</span>
-                        <span className="text-white/40">{tr("Simulación en vivo")}</span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
-                        <button
-                          type="button"
-                          onClick={() => simularExpiracion1Dia(e)}
-                          className="flex items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 font-medium text-white/80 hover:bg-white/12 hover:text-white transition"
-                          title={tr("Simular que le queda 1 día para probar la auto-renovación")}
-                        >
-                          <Clock size={11} className="text-amber-400" />
-                          <span>{tr("1 día (Auto-renovación)")}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => ejecutarAutoRenovacion(e)}
-                          className="flex items-center justify-center gap-1 rounded-lg border border-[#d7dc9a]/30 bg-[#d7dc9a]/10 px-2 py-1.5 font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/20 transition"
-                          title={tr("Simular cobro automático con éxito")}
-                        >
-                          <CreditCard size={11} />
-                          <span>{tr("Cobrar (+1 mes)")}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => simularImpago2Dias(e)}
-                          className="flex items-center justify-center gap-1 rounded-lg border border-red-500/30 bg-red-950/20 px-2 py-1.5 font-medium text-red-300 hover:bg-red-950/40 transition"
-                          title={tr("Simular impago y bloqueo manteniendo código intacto")}
-                        >
-                          <AlertTriangle size={11} />
-                          <span>{tr("Impago (2 días caducada)")}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => reactivarConMismoCodigo(e)}
-                          className="flex items-center justify-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-950/20 px-2 py-1.5 font-bold text-emerald-300 hover:bg-emerald-950/40 transition"
-                          title={tr("Reactivar suscripción tras impago con exactamente el mismo código")}
-                        >
-                          <CheckCircle2 size={11} />
-                          <span>{tr("Reactivar con mismo código")}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => simularWebhookStripe(e)}
-                          className="flex items-center justify-center gap-1 rounded-lg border border-sky-500/30 bg-sky-950/20 px-2 py-1.5 font-medium text-sky-300 hover:bg-sky-950/40 transition"
-                          title={tr("Simular webhook instantáneo de Stripe")}
-                        >
-                          <BellRing size={11} />
-                          <span>{tr("Webhook Stripe instantáneo")}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => auxilio3DiasGracia(e)}
-                          className="flex items-center justify-center gap-1 rounded-lg border border-amber-500/30 bg-amber-950/20 px-2 py-1.5 font-medium text-amber-300 hover:bg-amber-950/40 transition"
-                          title={tr("Conceder auxilio de emergencia de 3 días")}
-                        >
-                          <LifeBuoy size={11} />
-                          <span>{tr("+3 días auxilio emergencia")}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Barra de Acciones: Entrar en la empresa + Renovación */}
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
-                      {/* BOTÓN CLAVE: Acceder a la empresa para inspección y soporte */}
-                      <button
-                        type="button"
-                        onClick={() => entrarEnEmpresa(e)}
-                        className="flex items-center gap-1.5 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 px-3 py-1.5 text-xs font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/25 transition"
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span
+                        className={clsx(
+                          "rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider",
+                          st.clase
+                        )}
                       >
-                        <LogIn size={13} />
-                        <span>{tr("Acceder a empresa")}</span>
-                      </button>
-
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => setModalAccion({ tipo: "renovar_mes", empresa: e })}
-                          className="flex items-center gap-1 rounded-xl border border-white/14 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition"
-                        >
-                          <Plus size={13} className="text-[#d7dc9a]" />
-                          <span>{tr("+1 mes")}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setModalAccion({ tipo: "poner_fecha", empresa: e })}
-                          className="flex items-center gap-1 rounded-xl border border-white/14 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition"
-                        >
-                          <Calendar size={13} className="text-[#d7dc9a]" />
-                          <span>{tr("Establecer fecha")}</span>
-                        </button>
-
-                        {e.bloqueada ? (
-                          <button
-                            type="button"
-                            onClick={() => setModalAccion({ tipo: "desbloquear", empresa: e })}
-                            className="rounded-xl border border-green-500/40 bg-green-950/20 px-3 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-950/40 transition"
-                          >
-                            {tr("Desbloquear")}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setModalAccion({ tipo: "bloquear", empresa: e })}
-                            className="rounded-xl border border-red-500/40 bg-red-950/20 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-950/40 transition"
-                          >
-                            {tr("Bloquear")}
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => setEmpresaDetalle(e)}
-                          className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition"
-                        >
-                          <span>{tr("Detalles")}</span>
-                          <ChevronRight size={13} />
-                        </button>
-                      </div>
+                        {st.etiqueta}
+                      </span>
+                      <ChevronRight size={16} className="text-white/35" />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
           )}
         </div>
       )}
+
+      {/* ========================================================
+          PESTAÑA 1 (VISTA DETALLE): UNA SOLA EMPRESA EN PANTALLA
+         ======================================================== */}
+      {tabActiva === "empresas" && empresaSeleccionada && (() => {
+        const s = clasificarSuscripcion(empresaSeleccionada);
+        const st = estadoSimple(empresaSeleccionada);
+        const erroresEmpresa = errores.filter(
+          (err) =>
+            err.empresa === empresaSeleccionada.nombre ||
+            err.email === empresaSeleccionada.email_contacto
+        );
+
+        return (
+          <div className="space-y-4">
+            {/* Barra superior: Volver + Acceder a empresa */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setEmpresaSeleccionadaId(null)}
+                className="flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 hover:text-white transition"
+              >
+                <ArrowLeft size={14} />
+                <span>{tr("Volver a la lista")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => entrarEnEmpresa(empresaSeleccionada)}
+                className="flex items-center gap-1.5 rounded-xl bg-[#d7dc9a] px-4 py-2 text-xs font-bold text-[#141a16] shadow-md transition hover:bg-[#c8cd8b] active:scale-95"
+              >
+                <LogIn size={14} />
+                <span>{tr("Acceder a empresa")}</span>
+              </button>
+            </div>
+
+            {/* Tarjeta principal de la empresa */}
+            <div className="rounded-2xl border border-white/12 bg-[#19211c]/95 p-4 sm:p-5 backdrop-blur-xl shadow-lg space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div className="min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-lg font-bold text-white">{empresaSeleccionada.nombre}</h2>
+                    <span className={clsx("rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider", st.clase)}>
+                      {st.etiqueta}
+                    </span>
+                    <span className={clsx("rounded-full border px-2.5 py-0.5 text-[10.5px] font-semibold", s.badgeClase)}>
+                      {s.etiqueta}
+                    </span>
+                    {empresaSeleccionada.stripe_event && (
+                      <span
+                        className={clsx(
+                          "rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                          empresaSeleccionada.stripe_event === "paid" && "border-emerald-500/30 bg-emerald-950/30 text-emerald-300",
+                          empresaSeleccionada.stripe_event === "failed" && "border-red-500/40 bg-red-950/40 text-red-300",
+                          empresaSeleccionada.stripe_event === "trialing" && "border-amber-500/30 bg-amber-950/30 text-amber-300",
+                          empresaSeleccionada.stripe_event === "canceled" && "border-white/20 bg-white/5 text-white/50"
+                        )}
+                      >
+                        {empresaSeleccionada.stripe_event === "paid" && tr("Stripe: Cobro correcto")}
+                        {empresaSeleccionada.stripe_event === "failed" && tr("Stripe: Fallo de cobro")}
+                        {empresaSeleccionada.stripe_event === "trialing" && tr("Stripe: En prueba")}
+                        {empresaSeleccionada.stripe_event === "canceled" && tr("Stripe: Cancelado")}
+                      </span>
+                    )}
+                  </div>
+
+                  {empresaSeleccionada.sector && (
+                    <div className="flex items-center gap-1.5 text-xs text-white/55">
+                      {empresaSeleccionada.sector.includes("Electricidad") ? (
+                        <Zap size={13} className="text-[#d7dc9a]" />
+                      ) : empresaSeleccionada.sector.includes("solar") || empresaSeleccionada.sector.includes("Placas") ? (
+                        <Sun size={13} className="text-[#d7dc9a]" />
+                      ) : (
+                        <Hammer size={13} className="text-[#d7dc9a]" />
+                      )}
+                      <span>{empresaSeleccionada.sector}</span>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => copiar(empresaSeleccionada.codigo)}
+                  className="inline-flex items-center gap-1.5 self-start rounded-lg border border-[#d7dc9a]/30 bg-[#d7dc9a]/10 px-2.5 py-1 font-mono text-xs font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/20 transition shrink-0"
+                  title={tr("Copiar clave")}
+                >
+                  <span>{empresaSeleccionada.codigo}</span>
+                  {copiado === empresaSeleccionada.codigo ? <Check size={12} /> : <Copy size={12} />}
+                </button>
+              </div>
+
+              {empresaSeleccionada.motivo_estado && (
+                <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-950/25 px-3 py-2 text-xs font-medium text-amber-200">
+                  <AlertTriangle size={14} className="text-amber-400 shrink-0" />
+                  <span>{empresaSeleccionada.motivo_estado}</span>
+                </div>
+              )}
+
+              {/* 4 cifras clave de un vistazo */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                  <div className="text-[10.5px] text-white/50">{tr("Con nosotros")}</div>
+                  <div className="mt-0.5 text-sm font-bold text-white">
+                    {tiempoConNosotros(empresaSeleccionada.created_at)}
+                  </div>
+                  <div className="text-[10px] text-white/40">{fecha(empresaSeleccionada.created_at)}</div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                  <div className="text-[10.5px] text-white/50">{tr("Estado de la suscripción")}</div>
+                  <div className="mt-0.5 text-sm font-bold text-[#d7dc9a]">
+                    {empresaSeleccionada.activa_hasta ? fecha(empresaSeleccionada.activa_hasta) : tr("Sin caducidad")}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                  <div className="text-[10.5px] text-white/50">{tr("Última actividad")}</div>
+                  <div className="mt-0.5 text-sm font-bold text-white/90 truncate">
+                    {empresaSeleccionada.ultima_actividad || "—"}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                  <div className="text-[10.5px] text-white/50">{tr("Errores")}</div>
+                  <div
+                    className={clsx(
+                      "mt-0.5 font-mono text-sm font-bold",
+                      erroresEmpresa.length > 0 ? "text-red-400" : "text-emerald-400"
+                    )}
+                  >
+                    {erroresEmpresa.length}
+                  </div>
+                </div>
+              </div>
+
+              {/* Acciones rápidas de suscripción con confirmación */}
+              <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setModalAccion({ tipo: "renovar_mes", empresa: empresaSeleccionada })}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/14 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10 transition"
+                >
+                  <Plus size={13} className="text-[#d7dc9a]" />
+                  <span>{tr("+1 mes")}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setModalAccion({ tipo: "poner_fecha", empresa: empresaSeleccionada })}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/14 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10 transition"
+                >
+                  <Calendar size={13} className="text-[#d7dc9a]" />
+                  <span>{tr("Establecer fecha")}</span>
+                </button>
+
+                {empresaSeleccionada.bloqueada ? (
+                  <button
+                    type="button"
+                    onClick={() => setModalAccion({ tipo: "desbloquear", empresa: empresaSeleccionada })}
+                    className="rounded-xl border border-green-500/40 bg-green-950/20 px-3 py-2 text-xs font-semibold text-green-400 hover:bg-green-950/40 transition"
+                  >
+                    {tr("Desbloquear")}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setModalAccion({ tipo: "bloquear", empresa: empresaSeleccionada })}
+                    className="rounded-xl border border-red-500/40 bg-red-950/20 px-3 py-2 text-xs font-semibold text-red-400 hover:bg-red-950/40 transition"
+                  >
+                    {tr("Bloquear")}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Errores específicos de esta empresa */}
+            <div className="rounded-2xl border border-white/12 bg-[#19211c]/90 p-4 backdrop-blur-xl space-y-2.5">
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-white/70">
+                <span className="flex items-center gap-1.5">
+                  <AlertTriangle size={14} className={erroresEmpresa.length > 0 ? "text-red-400" : "text-emerald-400"} />
+                  <span>{tr("Errores de la app")}</span>
+                </span>
+                <span className="font-mono text-[#d7dc9a]">{erroresEmpresa.length}</span>
+              </div>
+
+              {erroresEmpresa.length === 0 ? (
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center text-xs text-emerald-400/85">
+                  {tr("0 errores críticos")}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {erroresEmpresa.map((err) => (
+                    <div
+                      key={err.id}
+                      onClick={() => setErrorAbierto(errorAbierto === err.id ? null : err.id)}
+                      className="cursor-pointer rounded-xl border border-red-500/25 bg-red-950/20 p-3 transition hover:border-red-500/45"
+                    >
+                      <div className="flex items-center justify-between text-[11px] text-white/50">
+                        <span>{new Date(err.creado_en).toLocaleString(localeActual())}</span>
+                        <span className="font-mono text-[#d7dc9a]">{err.email ?? ""}</span>
+                      </div>
+                      <div className="mt-1 text-xs sm:text-sm font-semibold text-red-300">{err.mensaje}</div>
+                      {err.ruta && (
+                        <div className="mt-0.5 font-mono text-[11px] text-white/50">
+                          {tr("Pantalla / Ruta")}: {err.ruta}
+                        </div>
+                      )}
+                      {errorAbierto === err.id && (
+                        <div className="mt-2.5 space-y-1.5 rounded-lg bg-black/50 p-2.5 font-mono text-[11px] border border-white/10">
+                          {err.navegador && (
+                            <div className="text-white/75">
+                              <span className="text-white/40">{tr("Dispositivo / Navegador")}: </span>
+                              {err.navegador}
+                            </div>
+                          )}
+                          {err.detalle && (
+                            <pre className="max-h-52 overflow-auto whitespace-pre-wrap break-all text-red-300">
+                              {err.detalle}
+                            </pre>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Contacto, plantilla y obras */}
+            <div className="rounded-2xl border border-white/12 bg-[#19211c]/90 p-4 backdrop-blur-xl space-y-3 text-xs">
+              <div className="text-xs font-bold uppercase tracking-wider text-white/60">
+                {tr("Información general")}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 text-white/70">
+                {empresaSeleccionada.responsable_nombre && (
+                  <span className="font-semibold text-white">{empresaSeleccionada.responsable_nombre}</span>
+                )}
+                {empresaSeleccionada.email_contacto && (
+                  <a href={`mailto:${empresaSeleccionada.email_contacto}`} className="flex items-center gap-1 text-[#d7dc9a] hover:underline">
+                    <Mail size={12} /> {empresaSeleccionada.email_contacto}
+                  </a>
+                )}
+                {empresaSeleccionada.telefono_contacto && (
+                  <a href={`tel:${empresaSeleccionada.telefono_contacto}`} className="flex items-center gap-1 text-white/75 hover:underline">
+                    <Phone size={12} /> {empresaSeleccionada.telefono_contacto}
+                  </a>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-white/10 pt-3">
+                <div className="space-y-1.5">
+                  <div className="text-[11px] font-semibold text-white/50 flex items-center gap-1.5">
+                    <Users size={12} />
+                    <span>{trN(empresaSeleccionada.miembros_count, "{n} miembro", "{n} miembros")}</span>
+                  </div>
+                  {empresaSeleccionada.trabajadores_nombres?.map((t, idx) => (
+                    <div key={idx} className="text-white/80 py-0.5">{t}</div>
+                  ))}
+                </div>
+                <div className="space-y-1.5">
+                  <div className="text-[11px] font-semibold text-white/50 flex items-center gap-1.5">
+                    <Wrench size={12} />
+                    <span>{trN(empresaSeleccionada.obras_count, "{n} obra", "{n} obras")}</span>
+                  </div>
+                  {empresaSeleccionada.obras_nombres?.map((o, idx) => (
+                    <div key={idx} className="text-white/80 py-0.5">{o}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Historial de Auditoría */}
+            <div className="rounded-2xl border border-white/12 bg-[#19211c]/90 p-4 backdrop-blur-xl space-y-2.5 text-xs">
+              <div className="text-xs font-bold uppercase tracking-wider text-white/60 flex items-center gap-1.5">
+                <History size={13} className="text-[#d7dc9a]" />
+                <span>{tr("Historial de auditoría")}</span>
+              </div>
+              {!empresaSeleccionada.historial_audit || empresaSeleccionada.historial_audit.length === 0 ? (
+                <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center text-white/40 text-[11px]">
+                  {tr("Sin registros de auditoría aún")}
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                  {empresaSeleccionada.historial_audit.map((h, idx) => (
+                    <div key={idx} className="rounded-xl border border-white/10 bg-black/25 p-2.5 space-y-1">
+                      <div className="flex items-center justify-between text-[10.5px] text-white/50">
+                        <span className="font-semibold text-white/90">{h.accion}</span>
+                        <span>{new Date(h.fecha).toLocaleString(localeActual())}</span>
+                      </div>
+                      <div className="text-[11px] text-white/70">{h.detalle}</div>
+                      {h.admin && <div className="text-[10px] text-[#d7dc9a] font-mono">{h.admin}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Simulador de pruebas colapsado por defecto */}
+            <details className="rounded-2xl border border-white/10 bg-[#141b16]/85 p-3.5 text-xs">
+              <summary className="cursor-pointer select-none font-bold uppercase tracking-wider text-[#d7dc9a]/85">
+                {tr("Pruebas de suscripción y soporte rápido")}
+              </summary>
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => simularExpiracion1Dia(empresaSeleccionada)}
+                  className="flex items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-2 font-medium text-white/80 hover:bg-white/12 transition"
+                >
+                  <Clock size={11} className="text-amber-400" />
+                  <span>{tr("1 día (Auto-renovación)")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => ejecutarAutoRenovacion(empresaSeleccionada)}
+                  className="flex items-center justify-center gap-1 rounded-lg border border-[#d7dc9a]/30 bg-[#d7dc9a]/10 px-2 py-2 font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/20 transition"
+                >
+                  <CreditCard size={11} />
+                  <span>{tr("Cobrar (+1 mes)")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => simularImpago2Dias(empresaSeleccionada)}
+                  className="flex items-center justify-center gap-1 rounded-lg border border-red-500/30 bg-red-950/20 px-2 py-2 font-medium text-red-300 hover:bg-red-950/40 transition"
+                >
+                  <AlertTriangle size={11} />
+                  <span>{tr("Impago (2 días caducada)")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => reactivarConMismoCodigo(empresaSeleccionada)}
+                  className="flex items-center justify-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-950/20 px-2 py-2 font-bold text-emerald-300 hover:bg-emerald-950/40 transition"
+                >
+                  <CheckCircle2 size={11} />
+                  <span>{tr("Reactivar con mismo código")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => simularWebhookStripe(empresaSeleccionada)}
+                  className="flex items-center justify-center gap-1 rounded-lg border border-sky-500/30 bg-sky-950/20 px-2 py-2 font-medium text-sky-300 hover:bg-sky-950/40 transition"
+                >
+                  <BellRing size={11} />
+                  <span>{tr("Webhook Stripe instantáneo")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => auxilio3DiasGracia(empresaSeleccionada)}
+                  className="flex items-center justify-center gap-1 rounded-lg border border-amber-500/30 bg-amber-950/20 px-2 py-2 font-medium text-amber-300 hover:bg-amber-950/40 transition"
+                >
+                  <LifeBuoy size={11} />
+                  <span>{tr("+3 días auxilio emergencia")}</span>
+                </button>
+              </div>
+            </details>
+          </div>
+        );
+      })()}
 
       {/* ========================================================
           PESTAÑA 2: CÓDIGOS DE ALTA Y SUSCRIPCIÓN
@@ -1698,307 +1691,6 @@ export default function AdminEmpresasPage() {
               <PrimaryButton onClick={handleCrearEmpresa} disabled={!nuevaEmpresaNombre.trim()}>
                 {tr("Crear y generar clave")}
               </PrimaryButton>
-            </div>
-          </div>
-        </Sheet>
-      )}
-
-      {/* Sheet de Detalle de Empresa */}
-      {empresaDetalle && (
-        <Sheet
-          title={empresaDetalle.nombre}
-          onClose={() => setEmpresaDetalle(null)}
-        >
-          <div className="space-y-5">
-            {/* Clave de Licencia */}
-            <div className="rounded-2xl border border-white/12 bg-black/30 p-4 space-y-2">
-              <div className="text-xs font-bold uppercase tracking-wider text-white/50">
-                {tr("Clave de licencia")}
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-lg font-bold text-[#d7dc9a]">
-                  {empresaDetalle.codigo}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => copiar(empresaDetalle.codigo)}
-                  className="flex items-center gap-1 rounded-lg border border-white/14 bg-white/5 px-2.5 py-1 text-xs font-semibold text-white"
-                >
-                  {copiado === empresaDetalle.codigo ? <Check size={13} /> : <Copy size={13} />}
-                  <span>{copiado === empresaDetalle.codigo ? tr("Clave copiada") : tr("Copiar")}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Botón de Acceder a Empresa */}
-            <button
-              type="button"
-              onClick={() => entrarEnEmpresa(empresaDetalle)}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#d7dc9a] py-3 text-xs font-bold text-[#141a16] shadow-md transition hover:bg-[#c8cd8b]"
-            >
-              <LogIn size={15} />
-              <span>{tr("Acceder a esta empresa")}</span>
-            </button>
-
-            {/* Información General */}
-            <div className="space-y-2 text-xs">
-              <div className="text-xs font-bold uppercase tracking-wider text-white/50">
-                {tr("Información general")}
-              </div>
-              {empresaDetalle.sector && (
-                <div className="flex justify-between border-b border-white/10 py-1.5">
-                  <span className="text-white/60">{tr("Sector de actividad")}</span>
-                  <span className="font-semibold text-white/90">{empresaDetalle.sector}</span>
-                </div>
-              )}
-              <div className="flex justify-between border-b border-white/10 py-1.5">
-                <span className="text-white/60">{tr("Responsable")}</span>
-                <span className="font-semibold text-white/90">{empresaDetalle.responsable_nombre || "—"}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/10 py-1.5">
-                <span className="text-white/60">{tr("Email de contacto")}</span>
-                <span className="font-mono text-[#d7dc9a]">{empresaDetalle.email_contacto || "—"}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/10 py-1.5">
-                <span className="text-white/60">{tr("Teléfono")}</span>
-                <span className="font-mono text-white/80">{empresaDetalle.telefono_contacto || "—"}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/10 py-1.5">
-                <span className="text-white/60">{tr("Fecha de registro")}</span>
-                <span className="text-white/80">{fecha(empresaDetalle.created_at)}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/10 py-1.5">
-                <span className="text-white/60">{tr("Estado de la suscripción")}</span>
-                <span className="font-semibold text-[#d7dc9a]">
-                  {clasificarSuscripcion(empresaDetalle).etiqueta}
-                </span>
-              </div>
-              {empresaDetalle.stripe_event && (
-                <div className="flex justify-between border-b border-white/10 py-1.5">
-                  <span className="text-white/60">Stripe</span>
-                  <span className="font-semibold text-white/90">
-                    {empresaDetalle.stripe_event === "paid" && tr("Stripe: Cobro correcto")}
-                    {empresaDetalle.stripe_event === "failed" && tr("Stripe: Fallo de cobro")}
-                    {empresaDetalle.stripe_event === "trialing" && tr("Stripe: En prueba")}
-                    {empresaDetalle.stripe_event === "canceled" && tr("Stripe: Cancelado")}
-                  </span>
-                </div>
-              )}
-              {empresaDetalle.motivo_estado && (
-                <div className="flex justify-between border-b border-white/10 py-1.5 text-amber-300">
-                  <span className="text-white/60">{tr("Motivo del bloqueo")}</span>
-                  <span className="font-medium text-right max-w-[65%]">{empresaDetalle.motivo_estado}</span>
-                </div>
-              )}
-              {empresaDetalle.ultima_actividad && (
-                <div className="flex justify-between border-b border-white/10 py-1.5">
-                  <span className="text-white/60">{tr("Última actividad")}</span>
-                  <span className="font-semibold text-white/90">{empresaDetalle.ultima_actividad}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Plantilla y obras */}
-            <div className="space-y-2 text-xs">
-              <div className="text-xs font-bold uppercase tracking-wider text-white/50">
-                {tr("Trabajadores y obras")}
-              </div>
-              {empresaDetalle.trabajadores_nombres?.map((t, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-white/80 py-1 border-b border-white/5">
-                  <Users size={12} className="text-white/40" />
-                  <span>{t}</span>
-                </div>
-              ))}
-              {empresaDetalle.obras_nombres?.map((o, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-white/80 py-1 border-b border-white/5">
-                  <Wrench size={12} className="text-white/40" />
-                  <span>{o}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Historial de Auditoría */}
-            <div className="space-y-2 text-xs">
-              <div className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center gap-1.5">
-                <History size={13} className="text-[#d7dc9a]" />
-                <span>{tr("Historial de auditoría")}</span>
-              </div>
-              {!empresaDetalle.historial_audit || empresaDetalle.historial_audit.length === 0 ? (
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center text-white/40 text-[11px]">
-                  {tr("Sin registros de auditoría aún")}
-                </div>
-              ) : (
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                  {empresaDetalle.historial_audit.map((h, idx) => (
-                    <div key={idx} className="rounded-xl border border-white/10 bg-black/25 p-2.5 space-y-1">
-                      <div className="flex items-center justify-between text-[10.5px] text-white/50">
-                        <span className="font-semibold text-white/90">{h.accion}</span>
-                        <span>{new Date(h.fecha).toLocaleString(localeActual())}</span>
-                      </div>
-                      <div className="text-[11px] text-white/70">{h.detalle}</div>
-                      {h.admin && <div className="text-[10px] text-[#d7dc9a] font-mono">{h.admin}</div>}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Incidencias 24h de esta empresa */}
-            {(() => {
-              const erroresEmpresa = errores.filter(
-                (err) => err.empresa === empresaDetalle.nombre || err.email === empresaDetalle.email_contacto
-              );
-              return (
-                <div className="space-y-2 text-xs">
-                  <div className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <AlertTriangle size={13} className="text-red-400" />
-                      <span>{tr("Errores en las últimas 24 horas")}</span>
-                    </span>
-                    <span className="font-mono text-[#d7dc9a]">{erroresEmpresa.length}</span>
-                  </div>
-                  {erroresEmpresa.length === 0 ? (
-                    <div className="rounded-xl border border-white/10 bg-black/20 p-2.5 text-center text-emerald-400/80 text-[11px]">
-                      {tr("0 errores críticos")}
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                      {erroresEmpresa.map((err) => (
-                        <div key={err.id} className="rounded-xl border border-red-500/20 bg-red-950/20 p-2.5 space-y-1">
-                          <div className="flex items-center justify-between text-[10.5px] text-white/50">
-                            <span className="font-semibold text-red-300">{err.mensaje}</span>
-                            <span>{new Date(err.creado_en).toLocaleTimeString(localeActual())}</span>
-                          </div>
-                          {err.ruta && <div className="font-mono text-[10px] text-white/50">{err.ruta}</div>}
-                          {err.navegador && <div className="text-[10px] text-white/40">{err.navegador}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* Diagnóstico y Salud */}
-            <div className="rounded-2xl border border-white/12 bg-black/25 p-3.5 space-y-2 text-xs">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-white/50">
-                {tr("Diagnóstico y salud de la empresa")}
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-[11.5px]">
-                <div className="flex items-center gap-1.5 text-emerald-400">
-                  <CheckCircle2 size={13} />
-                  <span>{tr("Base de datos conectada")}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[#d7dc9a]">
-                  <ShieldCheck size={13} />
-                  <span>{tr("Clave blindada en BD")}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-emerald-400">
-                  <CheckCircle2 size={13} />
-                  <span>{tr("0 errores críticos")}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-white/70">
-                  <RotateCcw size={13} className="text-[#d7dc9a]" />
-                  <span>{tr("Auto-renovación: ACTIVA (Stripe)")}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Laboratorio de Pruebas y Soporte Rápido dentro del modal */}
-            <div className="rounded-2xl border border-[#d7dc9a]/30 bg-[#162018]/90 p-3.5 space-y-2.5">
-              <div className="text-xs font-bold uppercase tracking-wider text-[#d7dc9a] flex items-center justify-between">
-                <span>{tr("Pruebas de suscripción y soporte rápido")}</span>
-                <span className="text-[10px] text-white/40">{tr("Regla de cancelación: mínimo 15 días antes del vencimiento")}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() => simularExpiracion1Dia(empresaDetalle)}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white/5 py-2 font-semibold text-white hover:bg-white/10 transition"
-                >
-                  <Clock size={12} className="text-amber-400" />
-                  <span>{tr("1 día (Auto-renovación)")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => ejecutarAutoRenovacion(empresaDetalle)}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-[#d7dc9a]/40 bg-[#d7dc9a]/15 py-2 font-bold text-[#d7dc9a] hover:bg-[#d7dc9a]/25 transition"
-                >
-                  <CreditCard size={12} />
-                  <span>{tr("Cobrar (+1 mes)")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => simularImpago2Dias(empresaDetalle)}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-red-500/30 bg-red-950/20 py-2 font-semibold text-red-300 hover:bg-red-950/40 transition"
-                >
-                  <AlertTriangle size={12} />
-                  <span>{tr("Impago (2 días caducada)")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => reactivarConMismoCodigo(empresaDetalle)}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 py-2 font-bold text-emerald-300 hover:bg-emerald-950/40 transition"
-                >
-                  <CheckCircle2 size={12} />
-                  <span>{tr("Reactivar con mismo código")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => simularWebhookStripe(empresaDetalle)}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-sky-500/30 bg-sky-950/20 py-2 font-semibold text-sky-300 hover:bg-sky-950/40 transition"
-                >
-                  <BellRing size={12} />
-                  <span>{tr("Webhook Stripe instantáneo")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => auxilio3DiasGracia(empresaDetalle)}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-950/20 py-2 font-semibold text-amber-300 hover:bg-amber-950/40 transition"
-                >
-                  <LifeBuoy size={12} />
-                  <span>{tr("+3 días auxilio emergencia")}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Acciones de Suscripción */}
-            <div className="space-y-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setModalAccion({ tipo: "renovar_mes", empresa: empresaDetalle })}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/14 bg-white/5 py-2.5 text-xs font-bold text-white hover:bg-white/10 transition"
-              >
-                <Plus size={14} className="text-[#d7dc9a]" />
-                <span>{tr("Confirmar renovación (+1 mes)")}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setModalAccion({ tipo: "poner_fecha", empresa: empresaDetalle })}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/14 bg-white/5 py-2.5 text-xs font-bold text-white hover:bg-white/10 transition"
-              >
-                <Calendar size={14} className="text-[#d7dc9a]" />
-                <span>{tr("Establecer fecha")}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setModalAccion({
-                    tipo: empresaDetalle.bloqueada ? "desbloquear" : "bloquear",
-                    empresa: empresaDetalle,
-                  })
-                }
-                className={clsx(
-                  "w-full flex items-center justify-center gap-2 rounded-xl border py-2.5 text-xs font-bold transition",
-                  empresaDetalle.bloqueada
-                    ? "border-green-500/40 text-green-400 bg-green-950/20"
-                    : "border-red-500/40 text-red-400 bg-red-950/20"
-                )}
-              >
-                {empresaDetalle.bloqueada ? tr("Desbloquear") : tr("Bloquear")}
-              </button>
             </div>
           </div>
         </Sheet>

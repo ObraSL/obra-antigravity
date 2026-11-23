@@ -896,4 +896,10 @@ export const uk: Record<string, string> = {
   "Solicita el código de acceso al responsable de tu empresa.": "Запросіть код доступу у керівника вашої компанії.",
   "Acceso para empresas autorizadas": "Доступ для авторизованих компаній",
   "Esta aplicación es un complemento corporativo. Solicita el código de acceso al responsable de tu empresa para iniciar sesión.": "Цей застосунок є корпоративним клієнтом. Запросіть код доступу у керівника вашої компанії, щоб увійти.",
+  "Pausada": "Призупинена",
+  "Inactiva": "Неактивна",
+  "Pausadas": "Призупинені",
+  "Inactivas": "Неактивні",
+  "Volver a la lista": "Назад до списку",
+  "Con nosotros": "З нами",
 };

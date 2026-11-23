@@ -878,4 +878,10 @@ export const en: Record<string, string> = {
   "Solicita el código de acceso al responsable de tu empresa.": "Request your access code from your company administrator.",
   "Acceso para empresas autorizadas": "Authorized company access",
   "Esta aplicación es un complemento corporativo. Solicita el código de acceso al responsable de tu empresa para iniciar sesión.": "This app is an enterprise companion client. Ask your company administrator for an access code to sign in.",
+  "Pausada": "Paused",
+  "Inactiva": "Inactive",
+  "Pausadas": "Paused",
+  "Inactivas": "Inactive",
+  "Volver a la lista": "Back to list",
+  "Con nosotros": "With us",
 };
