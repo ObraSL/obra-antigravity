@@ -291,7 +291,7 @@ function estadoSimple(e: EmpresaAdmin): {
 /** Calcula los días que lleva la empresa registrada en la plataforma. */
 function tiempoConNosotros(iso: string): string {
   const dias = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
-  return `${dias} ${tr("días")}`;
+  return trN(dias, "{n} día", "{n} días");
 }
 
 export default function AdminEmpresasPage() {
